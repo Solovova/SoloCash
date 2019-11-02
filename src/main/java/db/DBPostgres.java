@@ -1,11 +1,13 @@
+package db;
+
 import java.sql.*;
 
 public class DBPostgres {
     static private Connection connection = null;
     static private DBPostgres dbPostgres = null;
-    static final String DB_URL = "jdbc:postgresql://localhost:5432/cashflow";
-    static final String USER = "cashflow";
-    static final String PASS = "vbwqu1pa";
+    private static final String DB_URL = "jdbc:postgresql://localhost:5432/cashflow";
+    private static final String USER = "cashflow";
+    private static final String PASS = "vbwqu1pa";
 
     static public DBPostgres create() {
         if (dbPostgres == null) {
@@ -92,5 +94,17 @@ public class DBPostgres {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public int getNextID(String table) {
+        ResultSet rs = executeQuery(String.format("SELECT max(id) FROM %s;", table));
+        try {
+            if (rs.next()){
+                return rs.getInt(1) + 1;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return -1;
     }
 }

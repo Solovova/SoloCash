@@ -1,23 +1,28 @@
+import db.DBAtomic;
+
 import java.sql.SQLException;
 
 public class Main {
     public static void main(String[] args) throws SQLException {
-        DataBase DataBase = new DataBase();
-        if (!DataBase.isConnection()) {
+        DBAtomic dbAtomic = new DBAtomic();
+        if (!dbAtomic.isConnection()) {
             return;
         }
 
-        DataBase.createEmptyTable();
-        //DataBase.dropAllTable();
+        dbAtomic.createEmptyTable();
+        dbAtomic.fillTestData();
+        dbAtomic.addAccount("Test1", true);
 
-        for (int i = 0; i < 1000; i++) { //55s
-            for (int j = 0; j < 100; j++) {
-                int id = i*100+j;
-                DataBase.insertAuthorAdd(id,"Author " + id);
-            }
-            DataBase.insertAuthorPush();
+        for (int i = 10; i < 100; i++) {
+            dbAtomic.addAccountWithID(i*2," Account " + i);
         }
-        DataBase.printAuthors();
-        DataBase.close();
+
+        dbAtomic.addAccount("Test2", true);
+        dbAtomic.addAccount("Test2", false);
+
+
+//
+//        DataBase.printAuthors();
+        dbAtomic.close();
     }
 }
