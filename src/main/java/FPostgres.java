@@ -6,7 +6,7 @@ public class FPostgres {
     private Connection connection = null;
 
     //  Database credentials
-    static final String DB_URL = "jdbc:postgresql://localhost:5433/CashFlow";
+    static final String DB_URL = "jdbc:postgresql://localhost:5432/cashflow";
     static final String USER = "cashflow";
     static final String PASS = "vbwqu1pa";
 
@@ -45,6 +45,59 @@ public class FPostgres {
     public void close() throws SQLException {
         if (connection != null) {
             connection.close();
+        }
+    }
+
+
+
+    public void dropAllTable() throws SQLException {
+        Statement statement = null;
+        String createTableSQL = "DROP TABLE IF EXISTS books, authors, testing, images;";
+
+
+
+
+        try {
+            statement = connection.createStatement();
+            statement.execute(createTableSQL);
+            System.out.println("Table \"dbuser\" is created!");
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        } finally {
+            if (statement != null) {
+                statement.close();
+            }
+        }
+    }
+
+    public void createEmptyTable() throws SQLException {
+        Statement statement = null;
+        String createTableSQL = "DROP TABLE IF EXISTS books, authors, testing, images;" +
+                "CREATE TABLE IF NOT EXISTS authors (" +
+                "id serial PRIMARY KEY," +
+                "name VARCHAR(25)" +
+                ");" +
+
+                "CREATE TABLE IF NOT EXISTS books (" +
+                "id serial PRIMARY KEY," +
+                "author_id INT references authors(id), title VARCHAR(100)" +
+                ");" +
+
+                "CREATE TABLE IF NOT EXISTS testing(id INT);" +
+                "CREATE TABLE IF NOT EXISTS images(id serial, data bytea);";
+
+
+
+        try {
+            statement = connection.createStatement();
+            statement.execute(createTableSQL);
+            System.out.println("Table \"dbuser\" is created!");
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        } finally {
+            if (statement != null) {
+                statement.close();
+            }
         }
     }
 
