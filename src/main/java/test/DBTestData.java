@@ -18,7 +18,7 @@ public class DBTestData {
                     "describe VARCHAR(25)" +
                     ");";
 
-    public final static String SQL_TEST_DROP_ALL_TABLE = "DROP TABLE moves accounts";
+    public final static String SQL_TEST_DROP_ALL_TABLE = "DROP TABLE IF EXISTS accounts";
 
     public final static String SQL_CREATE_EMPTY_ACCOUNT_TABLE = "CREATE TABLE IF NOT EXISTS %s (" +
             "id serial PRIMARY KEY," +
@@ -27,10 +27,10 @@ public class DBTestData {
             "balance decimal);";
 
     public static void fillTestData(DB db){
-        db.dropAllTable();
-        //db.createEmptyTable();
-//        db.addAccountWithID(1,"visa");
-//        db.addAccountWithID(2,"bank");
-//        db.addAccountWithID(3,"pocket");
+        //db.dropAllTable();
+        db.createEmptyTable();
+        db.addAccountWithID(1,"visa");
+        db.addAccountWithID(2,"bank");
+        db.addAccountWithID(3,"pocket");
     }
 }

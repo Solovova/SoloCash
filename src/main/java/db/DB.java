@@ -16,7 +16,7 @@ public class DB {
         dbPostgres.execute(DBTestData.SQL_TEST_DROP_ALL_TABLE);
     }
     public void createEmptyTable() {
-        this.dropAllTable();
+        //this.dropAllTable();
         dbPostgres.execute(DBTestData.SQL_TEST_CREATE_EMPTY_TABLE);
     }
 
