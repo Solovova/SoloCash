@@ -1,0 +1,26 @@
+
+    public void insertAuthor(int id, String name) throws SQLException {
+        String sqlQuery = String.format("INSERT INTO authors(id, name) VALUES(%d, \'%s\');", id, name);
+        dbPostgres.execute(sqlQuery);
+    }
+
+    public void insertAuthorAdd(int id, String name) throws SQLException {
+        String sqlQuery = String.format("INSERT INTO authors(id, name) VALUES(%d, \'%s\');", id, name);
+        sqlQueryBuild.append(sqlQuery);
+    }
+
+    public void insertAuthorPush() throws SQLException {
+        dbPostgres.execute(sqlQueryBuild.toString());
+        sqlQueryBuild = new StringBuilder();
+    }
+
+
+    public void printAuthors() throws SQLException {
+        ResultSet rs = dbPostgres.executeQuery("SELECT * FROM authors ORDER BY id");
+        if (rs == null) return;
+        while (rs.next()) {
+            System.out.print(rs.getInt(1));
+            System.out.print(": ");
+            System.out.println(rs.getString(2));
+        }
+    }
