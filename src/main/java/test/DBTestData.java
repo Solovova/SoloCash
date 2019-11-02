@@ -27,10 +27,12 @@ public class DBTestData {
             "balance decimal);";
 
     public static void fillTestData(DB db){
-        //db.dropAllTable();
         db.createEmptyTable();
         db.addAccountWithID(1,"visa");
         db.addAccountWithID(2,"bank");
         db.addAccountWithID(3,"pocket");
+
+        db.addMove("visa","bank", 10.56);
+        db.addMove("bank","visa", 12.30);
     }
 }

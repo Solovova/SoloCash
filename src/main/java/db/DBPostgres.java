@@ -107,4 +107,16 @@ public class DBPostgres {
         }
         return -1;
     }
+
+    public boolean isTable(String name){
+        ResultSet rs = executeQuery(String.format("SELECT TABLE_NAME FROM cashflow.INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = \'%s\';", name));
+        try {
+            if (rs.next()){
+                return true;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
 }
