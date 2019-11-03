@@ -56,7 +56,23 @@ public class DBMain {
         return null;
     }
 
+    private String addMoveToAccount(int accountID, int moveID, double sum) {
+        String table = "account_" + accountID;
+        if (!dbPostgres.isTable(table)) return "Table " + table +" not exist!";
+
+        int id = dbPostgres.getNextID(table);
+        if (id == -1) return "Next id in " + table + " = -1";
+
+        String strSum = new DecimalFormat("#.00#").format(sum).replace(',', '.');
+        String sqlQuery = String.format("INSERT INTO %s (id, moves, sum) VALUES(%d, %d, %s);", table, id, moveID, strSum);
+        dbPostgres.execute(sqlQuery);
+
+        return null;
+    }
+
     private String addMoveByID(int idFrom, int idTo, double sum) {
+
+
         int id = dbPostgres.getNextID("moves");
         if (id == -1) return "Next id in tables moves = -1";
 
@@ -64,7 +80,11 @@ public class DBMain {
         String sqlQuery = String.format("INSERT INTO moves(id, accountFrom, accountTo, sum, time, describe) VALUES(%d, %d, %d, %s, %d, \'%s\');", id, idFrom, idTo, strSum, 0, "ddd");
         dbPostgres.execute(sqlQuery);
 
-        return null;
+        String result = null;
+        result = addMoveToAccount(idFrom,id,-sum);
+        if(result != null) return result;
+        result = addMoveToAccount(idTo,id,sum);
+        return result;
     }
 
     public String addMove(String nameFrom, String nameTo, double sum) {
