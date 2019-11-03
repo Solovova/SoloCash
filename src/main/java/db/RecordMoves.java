@@ -46,9 +46,9 @@ public class RecordMoves {
             db.dbPostgres.execute(sqlQuery);
 
             new RecordAccount(db,this,accountFrom,-1,-sum).insert();
-            accountFrom.recalculate();
+            accountFrom.recalculate(timestamp);
             new RecordAccount(db,this,accountTo,-1,sum).insert();
-            accountTo.recalculate();
+            accountTo.recalculate(timestamp);
         }
     }
 }

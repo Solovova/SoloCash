@@ -2,6 +2,7 @@ package db;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.text.DecimalFormat;
 
 public class RecordAccounts {
@@ -9,17 +10,37 @@ public class RecordAccounts {
     public String name;
     private DBMain db;
 
-    public void recalculate() throws DBException {
+    public void recalculate(Timestamp ts) throws DBException {
         String table = getTableAccountName();
         checkAccountTableExists();
-        ResultSet rs = db.dbPostgres.executeQuery(String.format("SELECT id, sum  FROM %s ORDER BY time;", table));
+        //String sqlR = String.format("SELECT id, sum, balance, LAG(balance,1) OVER(ORDER BY time) prev_balance FROM %s WHERE time >= \'%s\' ORDER BY time;", table, ts);
+        String sqlR = String.format("WITH cte AS (SELECT id, sum, balance, LAG(balance,1) OVER(ORDER BY time) prev_balance, time FROM %s ORDER BY time) SELECT id, sum, balance, prev_balance FROM cte WHERE time >= \'%s\';", table, ts);
 
-        double balance = 0.0;
+
+        //System.out.println(sqlR);
+        ResultSet rs = db.dbPostgres.executeQuery(sqlR);
+
+
+        double balance = 0;
 
         StringBuilder sb = new StringBuilder();
         try {
+
+            boolean first = true;
             while (rs.next()) {
+                //if (rs.getTimestamp(5).before(ts)) continue;
+
+                if (first) {
+                    first = false;
+                    balance = rs.getDouble(4);
+//
+//                    System.out.println(rs.getDouble(2));
+//                    System.out.println(rs.getDouble(3));
+//                    System.out.println(rs.getDouble(4));
+                }
+
                 balance += rs.getDouble(2);
+                if ((int)(balance*100) == (int)(rs.getDouble(3)*100)) continue;
                 int recordAccountID = rs.getInt(1);
                 String strBalance = new DecimalFormat("#.00#").format(balance).replace(',', '.');
                 String sqlRequest =  String.format("UPDATE %s SET balance = %s WHERE id = %d;",table,strBalance,recordAccountID);

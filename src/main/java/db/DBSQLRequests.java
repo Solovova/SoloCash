@@ -20,7 +20,7 @@ public class DBSQLRequests {
             "moves INT references moves(id)," +
             "time timestamp," +
             "sum decimal ," +
-            "balance decimal);";
+            "balance decimal DEFAULT 0);";
 
 
 }
