@@ -8,8 +8,8 @@ public class Main {
             return;
         }
 
-        TestData.fillTestData(dbMain);
-        //TestData.recalculateTests(dbMain);
+        //TestData.fillTestData(dbMain);
+        TestData.recalculateTests(dbMain);
 
         dbMain.close();
     }

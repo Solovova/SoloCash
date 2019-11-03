@@ -44,7 +44,7 @@ public class TestData {
         }
 
         List<String[]> moves = new ArrayList<String[]>();
-        for (int i = 0; i < 10000; i++) {
+        for (int i = 0; i < 100; i++) {
             int intFrom = getRandomNumberInRange(1, 9);
             int intTo = getRandomNumberInRange(1, 9);
             double sum = getRandomNumberInRange(1, 100);
@@ -66,7 +66,9 @@ public class TestData {
 
     public static void recalculateTests(DBMain dbMain) {
         try {
-            new RecordAccounts(dbMain, 12, "").recalculate(new Timestamp(1572798113000L));
+//            new RecordAccounts(dbMain, 12, "").recalculate(new Timestamp(1572798113000L));
+            //new RecordMoves(dbMain,23,null,null,0,null).delete();
+            new RecordMoves(dbMain,9,null,null,0,null).setSum(50);
         } catch (DBException e) {
             e.printStackTrace();
         }

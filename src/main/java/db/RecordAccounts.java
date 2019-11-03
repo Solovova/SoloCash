@@ -40,10 +40,10 @@ public class RecordAccounts {
                 }
 
                 balance += rs.getDouble(2);
-                if ((int)(balance*100) == (int)(rs.getDouble(3)*100)) continue;
+                if ((int) (balance * 100) == (int) (rs.getDouble(3) * 100)) continue;
                 int recordAccountID = rs.getInt(1);
                 String strBalance = new DecimalFormat("#.00#").format(balance).replace(',', '.');
-                String sqlRequest =  String.format("UPDATE %s SET balance = %s WHERE id = %d;",table,strBalance,recordAccountID);
+                String sqlRequest = String.format("UPDATE %s SET balance = %s WHERE id = %d;", table, strBalance, recordAccountID);
                 sb.append(sqlRequest);
             }
 
@@ -69,9 +69,9 @@ public class RecordAccounts {
         if (name.equals("")) {
             ResultSet rs = db.dbPostgres.getRowByIDFromTable("accounts", id, "name");
             try {
-                if(rs.next()) {
+                if (rs.next()) {
                     this.name = rs.getString(1);
-                }else {
+                } else {
                     throw new DBException("Account " + id + " not exist!");
                 }
             } catch (SQLException e) {
@@ -89,7 +89,7 @@ public class RecordAccounts {
 
     public void checkAccountTableExists() throws DBException {
         if (!db.dbPostgres.isTable(getTableAccountName())) {
-            throw new DBException("Table " + getTableAccountName() +" not exist!");
+            throw new DBException("Table " + getTableAccountName() + " not exist!");
         }
     }
 
@@ -106,23 +106,43 @@ public class RecordAccounts {
 
         if (id == -1) {
             id = db.dbPostgres.getNextID("accounts");
-        }else {
+        } else {
             if (db.dbPostgres.isIDInTable("accounts", id)) {
                 throw new DBException("Id " + id + " is already present in table accounts!");
             }
         }
 
-        if(id==-1) throw new DBException("Next id in tables accounts = -1");
+        if (id == -1) throw new DBException("Next id in tables accounts = -1");
         return true;
     }
 
+
+
     public void insert() throws DBException {
-        if (checkPossibilityInsert()){
+        if (checkPossibilityInsert()) {
             String sqlQuery = String.format("INSERT INTO accounts(id, name) VALUES(%d, \'%s\');", id, name);
             db.dbPostgres.execute(sqlQuery);
 
             String sqlQueryTableCreate = String.format(DBSQLRequests.SQL_CREATE_EMPTY_ACCOUNT_TABLE, "account_" + id);
             db.dbPostgres.execute(sqlQueryTableCreate);
+        }
+    }
+
+    public boolean checkPossibilityDelete() throws DBException {
+        checkAccountsTableExists();
+        if (id == -1) throw new DBException("Delete account row id = -1");
+
+        if (!db.dbPostgres.isIDInTable("accounts", id)) {
+            throw new DBException("Delete account row id " + id + " not exists!");
+        }
+        return true;
+    }
+
+    public void delete(int moveID) throws DBException {
+        if (checkPossibilityDelete()) {
+            String sqlQuery = String.format("DELETE FROM %s WHERE moves = %d;", getTableAccountName(), moveID);
+            System.out.println(sqlQuery);
+            db.dbPostgres.execute(sqlQuery);
         }
     }
 }

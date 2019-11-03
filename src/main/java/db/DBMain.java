@@ -1,18 +1,13 @@
 package db;
 
 import java.sql.*;
-import java.text.DecimalFormat;
 
 public class DBMain {
     public DBPostgres dbPostgres;
-    public TableMoves tableMoves;
-    public TableAccounts tableAccounts;
 
     public DBMain(){
         dbPostgres = DBPostgres.create();
         if (!dbPostgres.isConnection()) return;
-        tableMoves = new TableMoves(this);
-        tableAccounts = new TableAccounts(this);
     }
 
     public void close() {
