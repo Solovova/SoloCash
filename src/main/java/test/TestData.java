@@ -44,7 +44,7 @@ public class TestData {
         }
 
         List<String[]> moves = new ArrayList<String[]>();
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < 1000; i++) {
             int intFrom = getRandomNumberInRange(1, 9);
             int intTo = getRandomNumberInRange(1, 9);
             double sum = getRandomNumberInRange(1, 100);

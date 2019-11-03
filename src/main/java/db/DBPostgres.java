@@ -8,6 +8,8 @@ public class DBPostgres {
     private static final String DB_URL = "jdbc:postgresql://localhost:5432/cashflow";
     private static final String USER = "cashflow";
     private static final String PASS = "vbwqu1pa";
+    private PreparedStatement pst;
+    private StringBuilder packetSQLQuery = new StringBuilder();
 
     static DBPostgres create() {
         if (dbPostgres == null) {
@@ -55,27 +57,7 @@ public class DBPostgres {
         }
     }
 
-    void execute(String sqlQuery) {
-        if (connection == null) {
-            System.out.println("Connection is down!");
-            return;
-        }
-        Statement statement = null;
-        try {
-            statement = connection.createStatement();
-            statement.execute(sqlQuery);
-        } catch (SQLException e) {
-            System.out.println(e.getMessage());
-        } finally {
-            if (statement != null) {
-                try {
-                    statement.close();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-    }
+
 
     public void getInfo() throws SQLException {
         Statement st = connection.createStatement();
@@ -85,16 +67,7 @@ public class DBPostgres {
         }
     }
 
-    ResultSet executeQuery(String sqlQuery){
-        PreparedStatement pst = null;
-        try {
-            pst = connection.prepareStatement(sqlQuery);
-            return pst.executeQuery();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
+
 
     int getNextID(String table) {
         ResultSet rs = executeQuery(String.format("SELECT max(id) FROM %s;", table));
@@ -109,15 +82,7 @@ public class DBPostgres {
     }
 
     boolean isTable(String name){
-        ResultSet rs = executeQuery(String.format("SELECT TABLE_NAME FROM cashflow.INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = \'%s\';", name));
-        try {
-            if (rs.next()){
-                return true;
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return false;
+        return executeQueryIsRows(String.format("SELECT TABLE_NAME FROM cashflow.INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = \'%s\';", name));
     }
 
     int getIDFromTableByFiler(String table, String fieldName, String name) {
@@ -133,26 +98,63 @@ public class DBPostgres {
     }
 
     boolean isIDInTable(String table, int id) {
-        ResultSet rs = dbPostgres.executeQuery(String.format("SELECT id FROM %s WHERE id=%d;", table, id));
-        try {
-            return rs.next();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return false;
+        return dbPostgres.executeQueryIsRows(String.format("SELECT id FROM %s WHERE id=%d;", table, id));
     }
 
     boolean isStrFieldInTableByFilter(String table, String field, String value) {
-        ResultSet rs = dbPostgres.executeQuery(String.format("SELECT %s FROM %s WHERE %s='%s';", field, table, field, value));
-        try {
-            return rs.next();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return false;
+        return dbPostgres.executeQueryIsRows(String.format("SELECT %s FROM %s WHERE %s='%s';", field, table, field, value));
     }
 
     public ResultSet getRowByIDFromTable(String table, int id, String row){
         return dbPostgres.executeQuery(String.format("SELECT %s FROM %s WHERE id =%d;", row, table, id));
+    }
+
+
+    // base functions
+    public ResultSet executeQuery(String sqlQuery){
+        try {
+            if (pst != null) pst.close();
+            pst = connection.prepareStatement(sqlQuery);
+            return pst.executeQuery();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public boolean executeQueryIsRows(String sqlQuery){
+        try {
+            return executeQuery(sqlQuery).next();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    void executeSimple(String sqlQuery) {
+        Statement statement = null;
+        try {
+            statement = connection.createStatement();
+            statement.execute(sqlQuery);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            if (statement != null) {
+                try {
+                    statement.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    void setPacketSQLQueryAdd(String sqlQuery){
+        packetSQLQuery.append(sqlQuery);
+    }
+
+    void setPacketSQLQueryExecute(){
+        executeSimple(packetSQLQuery.toString());
+        packetSQLQuery = new StringBuilder();
     }
 }

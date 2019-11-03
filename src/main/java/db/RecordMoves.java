@@ -63,7 +63,7 @@ public class RecordMoves {
             accountFrom.conformityFromDB();
             accountTo.conformityFromDB();
             String sqlQuery = String.format("INSERT INTO moves(id, accountFrom, accountTo, sum, time, describe) VALUES(%d, %d, %d, %s, \'%s\', \'%s\');", id, accountFrom.id, accountTo.id, strSum, timestamp, "ddd");
-            db.dbPostgres.execute(sqlQuery);
+            db.dbPostgres.executeSimple(sqlQuery);
 
             new RecordAccount(db, this, accountFrom, -1, -sum).insert();
             accountFrom.recalculate(timestamp);
@@ -107,7 +107,7 @@ public class RecordMoves {
             this.accountTo.recalculate(timestamp);
 
             String sqlQuery = String.format("DELETE FROM moves WHERE id = %d;", id);
-            db.dbPostgres.execute(sqlQuery);
+            db.dbPostgres.executeSimple(sqlQuery);
         }
     }
 

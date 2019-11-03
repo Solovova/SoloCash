@@ -23,31 +23,19 @@ public class RecordAccounts {
 
         double balance = 0;
 
-        StringBuilder sb = new StringBuilder();
         try {
-
-            boolean first = true;
             while (rs.next()) {
-                //if (rs.getTimestamp(5).before(ts)) continue;
-
-                if (first) {
-                    first = false;
+                if (rs.isFirst()) {
                     balance = rs.getDouble(4);
-//
-//                    System.out.println(rs.getDouble(2));
-//                    System.out.println(rs.getDouble(3));
-//                    System.out.println(rs.getDouble(4));
                 }
-
                 balance += rs.getDouble(2);
                 if ((int) (balance * 100) == (int) (rs.getDouble(3) * 100)) continue;
                 int recordAccountID = rs.getInt(1);
                 String strBalance = new DecimalFormat("#.00#").format(balance).replace(',', '.');
                 String sqlRequest = String.format("UPDATE %s SET balance = %s WHERE id = %d;", table, strBalance, recordAccountID);
-                sb.append(sqlRequest);
+                db.dbPostgres.setPacketSQLQueryAdd(sqlRequest);
             }
-
-            db.dbPostgres.execute(sb.toString());
+            db.dbPostgres.setPacketSQLQueryExecute();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -121,10 +109,10 @@ public class RecordAccounts {
     public void insert() throws DBException {
         if (checkPossibilityInsert()) {
             String sqlQuery = String.format("INSERT INTO accounts(id, name) VALUES(%d, \'%s\');", id, name);
-            db.dbPostgres.execute(sqlQuery);
+            db.dbPostgres.executeSimple(sqlQuery);
 
             String sqlQueryTableCreate = String.format(DBSQLRequests.SQL_CREATE_EMPTY_ACCOUNT_TABLE, "account_" + id);
-            db.dbPostgres.execute(sqlQueryTableCreate);
+            db.dbPostgres.executeSimple(sqlQueryTableCreate);
         }
     }
 
@@ -142,7 +130,7 @@ public class RecordAccounts {
         if (checkPossibilityDelete()) {
             String sqlQuery = String.format("DELETE FROM %s WHERE moves = %d;", getTableAccountName(), moveID);
             System.out.println(sqlQuery);
-            db.dbPostgres.execute(sqlQuery);
+            db.dbPostgres.executeSimple(sqlQuery);
         }
     }
 }

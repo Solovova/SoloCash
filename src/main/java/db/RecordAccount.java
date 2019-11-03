@@ -26,6 +26,6 @@ public class RecordAccount {
 
         String strSum = new DecimalFormat("#.00#").format(sum).replace(',', '.');
         String sqlQuery = String.format("INSERT INTO %s (id, moves, time , sum) VALUES(%d, %d, \'%s\' ,%s);", table, id, recordMoves.id, recordMoves.timestamp ,strSum);
-        db.dbPostgres.execute(sqlQuery);
+        db.dbPostgres.executeSimple(sqlQuery);
     }
 }

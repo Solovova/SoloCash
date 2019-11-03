@@ -20,19 +20,19 @@ public class DBMain {
             try {
                 while (rs.next()) {
                     //System.out.println(String.format("DROP TABLE IF EXISTS %s;", "account_" + rs.getInt(1)));
-                    dbPostgres.execute(String.format("DROP TABLE IF EXISTS %s;", "account_" + rs.getInt(1)));
+                    dbPostgres.executeSimple(String.format("DROP TABLE IF EXISTS %s;", "account_" + rs.getInt(1)));
                 }
             } catch (SQLException e) {
                 e.printStackTrace();
             }
         }
-        dbPostgres.execute("DROP TABLE IF EXISTS moves;");
-        dbPostgres.execute("DROP TABLE IF EXISTS accounts;");
+        dbPostgres.executeSimple("DROP TABLE IF EXISTS moves;");
+        dbPostgres.executeSimple("DROP TABLE IF EXISTS accounts;");
     }
 
     public String createEmptyTable() {
         this.dropAllTable();
-        dbPostgres.execute(DBSQLRequests.SQL_TEST_CREATE_EMPTY_TABLE);
+        dbPostgres.executeSimple(DBSQLRequests.SQL_TEST_CREATE_EMPTY_TABLE);
         return null;
     }
 
