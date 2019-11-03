@@ -8,18 +8,17 @@ public class DBSQLRequests {
 
                     "CREATE TABLE IF NOT EXISTS moves (" +
                     "id serial PRIMARY KEY," +
-                    "time bigint," +
+                    "time timestamp," +
                     "accountFrom INT references accounts(id)," +
                     "accountTo INT references accounts(id)," +
                     "sum decimal ," +
                     "describe VARCHAR(25)" +
                     ");";
 
-    public final static String SQL_TEST_DROP_ALL_TABLE = "DROP TABLE IF EXISTS accounts";
-
     final static String SQL_CREATE_EMPTY_ACCOUNT_TABLE = "CREATE TABLE IF NOT EXISTS %s (" +
             "id serial PRIMARY KEY," +
             "moves INT references moves(id)," +
+            "time timestamp," +
             "sum decimal ," +
             "balance decimal);";
 

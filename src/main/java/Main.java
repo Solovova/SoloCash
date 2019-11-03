@@ -9,6 +9,7 @@ public class Main {
         }
 
         TestData.fillTestData(dbMain);
+        //TestData.recalculateTests(dbMain);
 
         dbMain.close();
     }

@@ -9,7 +9,6 @@ public class RecordAccount {
     private DBMain db;
     private double sum;
 
-
     RecordAccount(DBMain db, RecordMoves recordMoves, RecordAccounts recordAccounts, int id, double sum) {
         this.db = db;
         this.id = id;
@@ -18,22 +17,15 @@ public class RecordAccount {
         this.sum = sum;
     }
 
-    public void checkTableExists() throws DBException {
-        String table = "account_" + recordAccounts.id;
-        if (!db.dbPostgres.isTable(table)) {
-            throw new DBException("Table " + table +" not exist!");
-        }
-    }
-
     public void insert() throws DBException {
-        String table = "account_" + recordAccounts.id;
-        checkTableExists();
+        String table = recordAccounts.getTableAccountName();
+        recordAccounts.checkAccountTableExists();
 
         int id = db.dbPostgres.getNextID(table);
         if (id == -1) throw new DBException("Next id in tables accounts = -1");
 
         String strSum = new DecimalFormat("#.00#").format(sum).replace(',', '.');
-        String sqlQuery = String.format("INSERT INTO %s (id, moves, sum) VALUES(%d, %d, %s);", table, id, recordMoves.id, strSum);
+        String sqlQuery = String.format("INSERT INTO %s (id, moves, time , sum) VALUES(%d, %d, \'%s\' ,%s);", table, id, recordMoves.id, recordMoves.timestamp ,strSum);
         db.dbPostgres.execute(sqlQuery);
     }
 }

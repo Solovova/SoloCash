@@ -2,11 +2,35 @@ package db;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.DecimalFormat;
 
 public class RecordAccounts {
     public int id;
     public String name;
     private DBMain db;
+
+    public void recalculate() throws DBException {
+        String table = getTableAccountName();
+        checkAccountTableExists();
+        ResultSet rs = db.dbPostgres.executeQuery(String.format("SELECT id, sum  FROM %s ORDER BY time;", table));
+
+        double balance = 0.0;
+
+        StringBuilder sb = new StringBuilder();
+        try {
+            while (rs.next()) {
+                balance += rs.getDouble(2);
+                int recordAccountID = rs.getInt(1);
+                String strBalance = new DecimalFormat("#.00#").format(balance).replace(',', '.');
+                String sqlRequest =  String.format("UPDATE %s SET balance = %s WHERE id = %d;",table,strBalance,recordAccountID);
+                sb.append(sqlRequest);
+            }
+
+            db.dbPostgres.execute(sb.toString());
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 
     public RecordAccounts(DBMain db, int id, String name) {
         this.db = db;
@@ -15,7 +39,7 @@ public class RecordAccounts {
     }
 
     public void conformityFromDB() throws DBException {
-        checkTableExists();
+        checkAccountsTableExists();
         if (id == -1 && !name.equals("")) {
             id = db.dbPostgres.getIDFromTableByFiler("accounts", "name", name);
             if (id == -1) throw new DBException("Account " + name + " not exist!");
@@ -36,14 +60,24 @@ public class RecordAccounts {
         }
     }
 
-    public void checkTableExists() throws DBException {
+    public void checkAccountsTableExists() throws DBException {
         if (!db.dbPostgres.isTable("accounts")) {
             throw new DBException("Table accounts not exist!");
         }
     }
 
+    public void checkAccountTableExists() throws DBException {
+        if (!db.dbPostgres.isTable(getTableAccountName())) {
+            throw new DBException("Table " + getTableAccountName() +" not exist!");
+        }
+    }
+
+    public String getTableAccountName() {
+        return "account_" + this.id;
+    }
+
     public boolean checkPossibilityInsert() throws DBException {
-        checkTableExists();
+        checkAccountsTableExists();
 
         if (db.dbPostgres.isStrFieldInTableByFilter("accounts", "name", name)) {
             throw new DBException("Account " + name + " already exists!");

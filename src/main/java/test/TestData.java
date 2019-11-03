@@ -1,13 +1,9 @@
 package test;
 
-import db.DBException;
-import db.DBMain;
-import db.RecordAccounts;
-import db.RecordMoves;
+import db.*;
 
-import java.lang.reflect.Array;
+import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
@@ -26,20 +22,20 @@ public class TestData {
         if (message != null) System.out.println(message);
     }
 
-    public static void fillTestData(DBMain dbMain){
+    public static void fillTestData(DBMain dbMain) {
         mes(dbMain.createEmptyTable());
 
         List<RecordAccounts> accounts = new ArrayList<RecordAccounts>();
-        accounts.add(new RecordAccounts(dbMain,1,"visa"));
-        accounts.add(new RecordAccounts(dbMain,-1,"bank"));
-        accounts.add(new RecordAccounts(dbMain,-1,"pocket"));
-        accounts.add(new RecordAccounts(dbMain,-1,"visa07"));
+        accounts.add(new RecordAccounts(dbMain, 1, "visa"));
+        accounts.add(new RecordAccounts(dbMain, -1, "bank"));
+        accounts.add(new RecordAccounts(dbMain, -1, "pocket"));
+        accounts.add(new RecordAccounts(dbMain, -1, "visa07"));
 
         for (int i = 0; i < 10; i++) {
-            accounts.add(new RecordAccounts(dbMain,-1,"test" + i));
+            accounts.add(new RecordAccounts(dbMain, -1, "test" + i));
         }
 
-        for (RecordAccounts recordAccount:accounts) {
+        for (RecordAccounts recordAccount : accounts) {
             try {
                 recordAccount.insert();
             } catch (DBException e) {
@@ -48,23 +44,31 @@ public class TestData {
         }
 
         List<String[]> moves = new ArrayList<String[]>();
-        for (int i = 0; i < 1000; i++) {
-            int intFrom = getRandomNumberInRange(1,9);
-            int intTo = getRandomNumberInRange(1,9);
-            double sum = getRandomNumberInRange(1,100);
-            String[] str = {"test"+intFrom,"test"+intTo,Double.toString(sum)};
+        for (int i = 0; i < 100000; i++) {
+            int intFrom = getRandomNumberInRange(1, 9);
+            int intTo = getRandomNumberInRange(1, 9);
+            double sum = getRandomNumberInRange(1, 100);
+            String[] str = {"test" + intFrom, "test" + intTo, Double.toString(sum)};
             moves.add(str);
         }
 
         try {
-            for (String[] move:moves) {
-                new RecordMoves(dbMain, -1, new RecordAccounts(dbMain, -1, move[0]), new RecordAccounts(dbMain, -1, move[1]),Double.parseDouble(move[2])).insert();
+            for (int i = 0; i < moves.size(); i++) {
+                String [] move = moves.get(i);
+                Timestamp timestamp = new Timestamp(System.currentTimeMillis() - (moves.size() - i)*1000);
+                new RecordMoves(dbMain, -1, new RecordAccounts(dbMain, -1, move[0]), new RecordAccounts(dbMain, -1, move[1]), Double.parseDouble(move[2]), timestamp).insert();
+                System.out.println(i);
             }
         } catch (DBException e) {
             e.printStackTrace();
         }
+    }
 
-        //mes(dbMain.tableMoves.addMove("visa","bank", 10.56));
-        //mes(dbMain.tableMoves.addMove("bank","visa", 12.30));
+    public static void recalculateTests(DBMain dbMain) {
+        try {
+            new RecordAccounts(dbMain, 12, "").recalculate();
+        } catch (DBException e) {
+            e.printStackTrace();
+        }
     }
 }

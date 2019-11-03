@@ -7,16 +7,12 @@ public class DBMain {
     public DBPostgres dbPostgres;
     public TableMoves tableMoves;
     public TableAccounts tableAccounts;
-    public TableAccount tableAccount;
-
-
 
     public DBMain(){
         dbPostgres = DBPostgres.create();
         if (!dbPostgres.isConnection()) return;
         tableMoves = new TableMoves(this);
         tableAccounts = new TableAccounts(this);
-        tableAccount = new TableAccount(this);
     }
 
     public void close() {
