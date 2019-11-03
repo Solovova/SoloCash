@@ -9,7 +9,7 @@ public class DBPostgres {
     private static final String USER = "cashflow";
     private static final String PASS = "vbwqu1pa";
 
-    static public DBPostgres create() {
+    static DBPostgres create() {
         if (dbPostgres == null) {
             dbPostgres = new DBPostgres();
             dbPostgres.connect();
@@ -17,7 +17,7 @@ public class DBPostgres {
         return dbPostgres;
     }
 
-    public void connect() {
+    private void connect() {
         try {
             Class.forName("org.postgresql.Driver");
         } catch (ClassNotFoundException e) {
@@ -41,11 +41,11 @@ public class DBPostgres {
         }
     }
 
-    public boolean isConnection() {
+    boolean isConnection() {
         return connection != null;
     }
 
-    public void close() {
+    void close() {
         if (connection != null) {
             try {
                 connection.close();
@@ -55,7 +55,7 @@ public class DBPostgres {
         }
     }
 
-    public void execute(String sqlQuery) {
+    void execute(String sqlQuery) {
         if (connection == null) {
             System.out.println("Connection is down!");
             return;
@@ -85,7 +85,7 @@ public class DBPostgres {
         }
     }
 
-    public ResultSet executeQuery(String sqlQuery){
+    ResultSet executeQuery(String sqlQuery){
         PreparedStatement pst = null;
         try {
             pst = connection.prepareStatement(sqlQuery);
@@ -96,7 +96,7 @@ public class DBPostgres {
         return null;
     }
 
-    public int getNextID(String table) {
+    int getNextID(String table) {
         ResultSet rs = executeQuery(String.format("SELECT max(id) FROM %s;", table));
         try {
             if (rs.next()){
@@ -108,12 +108,44 @@ public class DBPostgres {
         return -1;
     }
 
-    public boolean isTable(String name){
+    boolean isTable(String name){
         ResultSet rs = executeQuery(String.format("SELECT TABLE_NAME FROM cashflow.INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = \'%s\';", name));
         try {
             if (rs.next()){
                 return true;
             }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    int getIDFromTableByFiler(String table, String fieldName, String name) {
+        ResultSet rs = dbPostgres.executeQuery(String.format("SELECT id FROM %s WHERE %s='%s';", table, fieldName, name));
+        try {
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return -1;
+    }
+
+    boolean isIDInTable(String table, int id) {
+        ResultSet rs = dbPostgres.executeQuery(String.format("SELECT id FROM %s WHERE id=%d;", table, id));
+        try {
+            return rs.next();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    boolean isFieldInTableByFilter(String table, String field, String value) {
+        ResultSet rs = dbPostgres.executeQuery(String.format("SELECT %s FROM %s WHERE %s='%s';", field, table, field, value));
+        try {
+            return rs.next();
         } catch (SQLException e) {
             e.printStackTrace();
         }

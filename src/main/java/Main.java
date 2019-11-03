@@ -1,17 +1,17 @@
-import db.DB;
-import test.DBTestData;
+import db.DBMain;
+import test.TestData;
 
 import java.sql.SQLException;
 
 public class Main {
     public static void main(String[] args) throws SQLException {
-        DB db = new DB();
-        if (!db.isConnection()) {
+        DBMain dbMain = new DBMain();
+        if (!dbMain.isConnection()) {
             return;
         }
 
-        DBTestData.fillTestData(db);
+        TestData.fillTestData(dbMain);
 
-        db.close();
+        dbMain.close();
     }
 }

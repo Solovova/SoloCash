@@ -1,10 +1,7 @@
-package test;
+package db;
 
-
-import db.DB;
-
-public class DBTestData {
-    public final static String SQL_TEST_CREATE_EMPTY_TABLE = "CREATE TABLE IF NOT EXISTS accounts (" +
+public class DBSQLRequests {
+    final static String SQL_TEST_CREATE_EMPTY_TABLE = "CREATE TABLE IF NOT EXISTS accounts (" +
                     "id serial PRIMARY KEY," +
                     "name VARCHAR(25)" +
                     ");" +
@@ -20,19 +17,11 @@ public class DBTestData {
 
     public final static String SQL_TEST_DROP_ALL_TABLE = "DROP TABLE IF EXISTS accounts";
 
-    public final static String SQL_CREATE_EMPTY_ACCOUNT_TABLE = "CREATE TABLE IF NOT EXISTS %s (" +
+    final static String SQL_CREATE_EMPTY_ACCOUNT_TABLE = "CREATE TABLE IF NOT EXISTS %s (" +
             "id serial PRIMARY KEY," +
             "moves INT references moves(id)," +
             "sum decimal ," +
             "balance decimal);";
 
-    public static void fillTestData(DB db){
-        db.createEmptyTable();
-        db.addAccountWithID(1,"visa");
-        db.addAccountWithID(2,"bank");
-        db.addAccountWithID(3,"pocket");
 
-        db.addMove("visa","bank", 10.56);
-        db.addMove("bank","visa", 12.30);
-    }
 }
