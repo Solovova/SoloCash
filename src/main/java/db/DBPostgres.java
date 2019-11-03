@@ -142,7 +142,7 @@ public class DBPostgres {
         return false;
     }
 
-    boolean isFieldInTableByFilter(String table, String field, String value) {
+    boolean isStrFieldInTableByFilter(String table, String field, String value) {
         ResultSet rs = dbPostgres.executeQuery(String.format("SELECT %s FROM %s WHERE %s='%s';", field, table, field, value));
         try {
             return rs.next();
@@ -150,5 +150,9 @@ public class DBPostgres {
             e.printStackTrace();
         }
         return false;
+    }
+
+    public ResultSet getRowByIDFromTable(String table, int id, String row){
+        return dbPostgres.executeQuery(String.format("SELECT %s FROM %s WHERE id =%d;", row, table, id));
     }
 }
