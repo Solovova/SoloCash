@@ -98,9 +98,6 @@ public class RecordMoves {
     public void delete() throws DBException {
         if (checkPossibilityDelete()) {
             conformityFromDB();
-            System.out.println(this.accountFrom.id);
-            System.out.println(this.accountTo.id);
-
             this.accountFrom.delete(id);
             this.accountFrom.recalculate(timestamp);
             this.accountTo.delete(id);

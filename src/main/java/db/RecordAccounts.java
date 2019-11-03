@@ -14,13 +14,9 @@ public class RecordAccounts {
         String table = getTableAccountName();
         checkAccountTableExists();
         //String sqlR = String.format("SELECT id, sum, balance, LAG(balance,1) OVER(ORDER BY time) prev_balance FROM %s WHERE time >= \'%s\' ORDER BY time;", table, ts);
-        String sqlR = String.format("WITH cte AS (SELECT id, sum, balance, LAG(balance,1) OVER(ORDER BY time) prev_balance, time FROM %s ORDER BY time) SELECT id, sum, balance, prev_balance FROM cte WHERE time >= \'%s\';", table, ts);
-
-
+        String sqlR = String.format("WITH cte AS (SELECT id, sum, balance, LAG(balance,1) OVER(ORDER BY time, id) prev_balance, time FROM %s ORDER BY time, id) SELECT id, sum, balance, prev_balance FROM cte WHERE time >= \'%s\';", table, ts);
         //System.out.println(sqlR);
         ResultSet rs = db.dbPostgres.executeQuery(sqlR);
-
-
         double balance = 0;
 
         try {

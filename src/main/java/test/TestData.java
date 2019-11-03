@@ -62,6 +62,26 @@ public class TestData {
         } catch (DBException e) {
             e.printStackTrace();
         }
+
+        moves.clear();
+        for (int i = 0; i < 1000; i++) {
+            int intFrom = getRandomNumberInRange(1, 9);
+            int intTo = getRandomNumberInRange(1, 9);
+            double sum = getRandomNumberInRange(1, 100);
+            String[] str = {"test" + intFrom, "test" + intTo, Double.toString(sum)};
+            moves.add(str);
+        }
+
+        try {
+            for (int i = 0; i < moves.size(); i++) {
+                String [] move = moves.get(i);
+                Timestamp timestamp = new Timestamp(System.currentTimeMillis() - (moves.size() - i)*1000-500);
+                new RecordMoves(dbMain, -1, new RecordAccounts(dbMain, -1, move[0]), new RecordAccounts(dbMain, -1, move[1]), Double.parseDouble(move[2]), timestamp).insert();
+                System.out.println(i);
+            }
+        } catch (DBException e) {
+            e.printStackTrace();
+        }
     }
 
     public static void recalculateTests(DBMain dbMain) {

@@ -57,8 +57,6 @@ public class DBPostgres {
         }
     }
 
-
-
     public void getInfo() throws SQLException {
         Statement st = connection.createStatement();
         ResultSet rs = st.executeQuery("SELECT VERSION()");
@@ -66,8 +64,6 @@ public class DBPostgres {
             System.out.println(rs.getString(1));
         }
     }
-
-
 
     int getNextID(String table) {
         ResultSet rs = executeQuery(String.format("SELECT max(id) FROM %s;", table));
