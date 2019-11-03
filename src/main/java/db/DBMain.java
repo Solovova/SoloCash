@@ -4,7 +4,20 @@ import java.sql.*;
 import java.text.DecimalFormat;
 
 public class DBMain {
-    private DBPostgres dbPostgres = DBPostgres.create();
+    public DBPostgres dbPostgres;
+    public TableMoves tableMoves;
+    public TableAccounts tableAccounts;
+    public TableAccount tableAccount;
+
+
+
+    public DBMain(){
+        dbPostgres = DBPostgres.create();
+        if (!dbPostgres.isConnection()) return;
+        tableMoves = new TableMoves(this);
+        tableAccounts = new TableAccounts(this);
+        tableAccount = new TableAccount(this);
+    }
 
     public void close() {
         dbPostgres.close();
@@ -34,66 +47,5 @@ public class DBMain {
 
     public boolean isConnection() {
         return dbPostgres.isConnection();
-    }
-
-    public String addAccount(String name) {
-        if (dbPostgres.isFieldInTableByFilter("accounts", "name", name))
-            return "Account " + name + " already exists!";
-
-        int id = dbPostgres.getNextID("accounts");
-        if (id == -1) return "Next id in tables accounts = -1";
-        return addAccountByID(id, name);
-    }
-
-    public String addAccountByID(int id, String name) {
-        if (dbPostgres.isIDInTable("accounts", id)) return "Id " + id + "is already present in table accounts";
-
-        String sqlQuery = String.format("INSERT INTO accounts(id, name) VALUES(%d, \'%s\');", id, name);
-        dbPostgres.execute(sqlQuery);
-
-        String sqlQueryTableCreate = String.format(DBSQLRequests.SQL_CREATE_EMPTY_ACCOUNT_TABLE, "account_" + id);
-        dbPostgres.execute(sqlQueryTableCreate);
-        return null;
-    }
-
-    private String addMoveToAccount(int accountID, int moveID, double sum) {
-        String table = "account_" + accountID;
-        if (!dbPostgres.isTable(table)) return "Table " + table +" not exist!";
-
-        int id = dbPostgres.getNextID(table);
-        if (id == -1) return "Next id in " + table + " = -1";
-
-        String strSum = new DecimalFormat("#.00#").format(sum).replace(',', '.');
-        String sqlQuery = String.format("INSERT INTO %s (id, moves, sum) VALUES(%d, %d, %s);", table, id, moveID, strSum);
-        dbPostgres.execute(sqlQuery);
-
-        return null;
-    }
-
-    private String addMoveByID(int idFrom, int idTo, double sum) {
-
-
-        int id = dbPostgres.getNextID("moves");
-        if (id == -1) return "Next id in tables moves = -1";
-
-        String strSum = new DecimalFormat("#.00#").format(sum).replace(',', '.');
-        String sqlQuery = String.format("INSERT INTO moves(id, accountFrom, accountTo, sum, time, describe) VALUES(%d, %d, %d, %s, %d, \'%s\');", id, idFrom, idTo, strSum, 0, "ddd");
-        dbPostgres.execute(sqlQuery);
-
-        String result = null;
-        result = addMoveToAccount(idFrom,id,-sum);
-        if(result != null) return result;
-        result = addMoveToAccount(idTo,id,sum);
-        return result;
-    }
-
-    public String addMove(String nameFrom, String nameTo, double sum) {
-        int idFrom = dbPostgres.getIDFromTableByFiler("accounts", "name", nameFrom);
-        if (idFrom == -1) return "Account " + nameFrom + " not exist!";
-
-        int idTo = dbPostgres.getIDFromTableByFiler("accounts", "name", nameTo);
-        if (idTo == -1) return "Account " + nameTo + " not exist!";
-
-        return addMoveByID(idFrom, idTo, sum);
     }
 }
