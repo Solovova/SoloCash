@@ -2,12 +2,14 @@ package db;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.text.DecimalFormat;
 
 public class RecordAccount extends Record{
     final static public String tableName = "account_";
     private RecordAccounts recordAccounts;
     private RecordMoves recordMoves;
+    private Timestamp time;
     private double sum;
 
     RecordAccount(DBMain db, int id, RecordMoves recordMoves, RecordAccounts recordAccounts, double sum) {
@@ -58,4 +60,5 @@ public class RecordAccount extends Record{
     private String getTableAccountName() {
         return tableName + recordAccounts.getId();
     }
+
 }

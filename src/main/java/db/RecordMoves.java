@@ -57,4 +57,57 @@ public class RecordMoves extends Record{
         RecordAccount.createExists(getDb(),this,accountTo, this.sum).delete();
         super.delete();
     }
+
+    public void modify(Timestamp newTime, RecordAccounts newRaFrom, RecordAccounts newRaTo, Double newSum, String newDescribe) throws SQLException, DBException {
+        StringBuilder sb = new StringBuilder();
+
+        double oldSum = this.sum;
+        RecordAccounts oldRaFrom = this.accountFrom;
+        RecordAccounts oldRaTo = this.accountTo;
+        boolean needRefresh = false;
+
+        if (newTime != null && !newTime.equals(this.time)) {
+            sb.append(String.format("UPDATE %s SET time = \'%s\' WHERE id = %d;", getTable(), newTime, getId()));
+            this.time = newTime;
+            needRefresh = true;
+        }
+
+        if (newRaFrom != null && newRaFrom.getId()!=this.accountFrom.getId()) {
+            sb.append(String.format("UPDATE %s SET accountfrom = %d WHERE id = %d;", getTable(), newRaFrom.getId(), getId()));
+            this.accountFrom = newRaFrom;
+            needRefresh = true;
+        }
+
+        if (newRaTo != null && newRaTo.getId()!=this.accountTo.getId()) {
+            sb.append(String.format("UPDATE %s SET accountto = %d WHERE id = %d;", getTable(), newRaTo.getId(), getId()));
+            this.accountTo = newRaTo;
+            needRefresh = true;
+        }
+
+        if (newSum != null && newSum != this.sum) {
+            String strSum = new DecimalFormat("#.00#").format(newSum).replace(',', '.');
+            sb.append(String.format("UPDATE %s SET sum = %s WHERE id = %d;", getTable(), strSum, getId()));
+            this.sum = newSum;
+            needRefresh = true;
+        }
+
+        if (newDescribe != null && !newDescribe.equals(this.describe)) {
+            sb.append(String.format("UPDATE %s SET describe = \'%' WHERE id = %d;", getTable(), newDescribe, getId()));
+            this.describe = newDescribe;
+        }
+
+        String sqlQuery = sb.toString();
+        //System.out.println(sqlQuery);
+        if (!sqlQuery.isEmpty()) {
+            getDb().dbPostgres.executeSimple(sqlQuery);
+        }
+
+        if (needRefresh) {
+            RecordAccount.createExists(getDb(),this,oldRaFrom,-oldSum).delete();
+            RecordAccount.createExists(getDb(),this,oldRaTo, oldSum).delete();
+
+            RecordAccount.createNew(getDb(),this,accountFrom,-this.sum).insert();
+            RecordAccount.createNew(getDb(),this,accountTo,this.sum).insert();
+        }
+    }
 }

@@ -17,7 +17,7 @@ public class Main {
             e.printStackTrace();
         }
 
-        //TestData.recalculateTests(dbMain);
+        TestData.recalculateTests(dbMain);
 
         dbMain.close();
     }

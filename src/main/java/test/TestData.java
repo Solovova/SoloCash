@@ -7,8 +7,8 @@ import java.sql.Timestamp;
 
 public class TestData {
     public static void fillTestData(DBMain db) {
-        final int numAccounts = 10;
-        final int numMoves = 3000;
+        final int numAccounts = 3;
+        final int numMoves = 30;
 
         for (int i = 0; i < numAccounts; i++) {
             try {
@@ -20,7 +20,7 @@ public class TestData {
 
         for (int i = 0; i < numMoves; i++) {
             int accFrom = (i % numAccounts) + 1;
-            int accTo = ((i + 3) % numAccounts) + 1;
+            int accTo = ((i + 2) % numAccounts) + 1;
             double sum = (i % 20)+1;
             System.out.println(i);
             try {
@@ -39,7 +39,8 @@ public class TestData {
 
     public static void recalculateTests(DBMain dbMain) {
         try {
-            RecordMoves.createExists(dbMain,2).delete();
+            //RecordMoves.createExists(dbMain,2).delete();
+            RecordMoves.createExists(dbMain,2).modify(null,null,RecordAccounts.createExists(dbMain,2), null,null);
         } catch (DBException e) {
             e.printStackTrace();
         } catch (SQLException e) {
