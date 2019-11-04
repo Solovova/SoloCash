@@ -1,5 +1,7 @@
 package db;
 
+import java.sql.SQLException;
+
 public class Record {
     private int id;
     private DBMain db;
@@ -41,11 +43,11 @@ public class Record {
         return true;
     }
 
-    public void insert() throws DBException {
+    public void insert() throws DBException, SQLException {
         checkPossibilityInsert();
     }
 
-    public void delete() throws DBException {
+    public void delete() throws DBException, SQLException {
         checkPossibilityDelete();
         String sqlQuery = String.format("DELETE FROM %s WHERE id = %d;", getTable(), getId());
         getDb().dbPostgres.executeSimple(sqlQuery);

@@ -30,7 +30,7 @@ public class RecordAccounts extends Record {
     }
 
     @Override
-    public void insert() throws DBException {
+    public void insert() throws DBException, SQLException {
         super.insert();
         String sqlQuery = String.format("INSERT INTO accounts(id, name, timemodify) VALUES(%d, \'%s\', \'%s\');", getId(), name, timeModify);
         getDb().dbPostgres.executeSimple(sqlQuery);
@@ -39,7 +39,7 @@ public class RecordAccounts extends Record {
         getDb().dbPostgres.executeSimple(sqlQueryTableCreate);
     }
 
-    public void modify(String nameNew, Timestamp timeModifyNew) {
+    public void modify(String nameNew, Timestamp timeModifyNew) throws SQLException {
         StringBuilder sb = new StringBuilder();
 
         if (nameNew != null && !name.equals(nameNew)) {
@@ -53,14 +53,14 @@ public class RecordAccounts extends Record {
         }
 
         String sqlQuery = sb.toString();
-        System.out.println(sqlQuery);
+        //System.out.println(sqlQuery);
         if (!sqlQuery.isEmpty()) {
             getDb().dbPostgres.executeSimple(sqlQuery);
         }
     }
 
     @Override
-    public void delete() throws DBException {
+    public void delete() throws DBException, SQLException {
         super.delete();
         getDb().dbPostgres.executeSimple(String.format("DROP TABLE IF EXISTS %s;", getTableAccountName()));
     }
@@ -93,8 +93,12 @@ public class RecordAccounts extends Record {
                 getDb().dbPostgres.setPacketSQLQueryAdd(sqlRequest);
             }
             getDb().dbPostgres.setPacketSQLQueryExecute();
+
+            this.modify(null,new Timestamp(System.currentTimeMillis()));
         } catch (SQLException e) {
             e.printStackTrace();
         }
+
+
     }
 }

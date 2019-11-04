@@ -68,7 +68,7 @@ public class DBPostgres {
     int getNextID(String table) {
         ResultSet rs = executeQuery(String.format("SELECT max(id) FROM %s;", table));
         try {
-            if (rs.next()){
+            if (rs.next()) {
                 return rs.getInt(1) + 1;
             }
         } catch (SQLException e) {
@@ -77,7 +77,7 @@ public class DBPostgres {
         return -1;
     }
 
-    boolean isTable(String name){
+    boolean isTable(String name) {
         return executeQueryIsRows(String.format("SELECT TABLE_NAME FROM cashflow.INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = \'%s\';", name));
     }
 
@@ -101,13 +101,13 @@ public class DBPostgres {
         return dbPostgres.executeQueryIsRows(String.format("SELECT %s FROM %s WHERE %s='%s';", field, table, field, value));
     }
 
-    public ResultSet getRowByIDFromTable(String table, int id, String row){
+    public ResultSet getRowByIDFromTable(String table, int id, String row) {
         return dbPostgres.executeQuery(String.format("SELECT %s FROM %s WHERE id =%d;", row, table, id));
     }
 
 
     // base functions
-    public ResultSet executeQuery(String sqlQuery){
+    public ResultSet executeQuery(String sqlQuery) {
         try {
             if (pst != null) pst.close();
             pst = connection.prepareStatement(sqlQuery);
@@ -118,7 +118,7 @@ public class DBPostgres {
         return null;
     }
 
-    public boolean executeQueryIsRows(String sqlQuery){
+    public boolean executeQueryIsRows(String sqlQuery) {
         try {
             return executeQuery(sqlQuery).next();
         } catch (SQLException e) {
@@ -127,29 +127,17 @@ public class DBPostgres {
         return false;
     }
 
-    void executeSimple(String sqlQuery) {
-        Statement statement = null;
-        try {
-            statement = connection.createStatement();
-            statement.execute(sqlQuery);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } finally {
-            if (statement != null) {
-                try {
-                    statement.close();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
+    void executeSimple(String sqlQuery) throws SQLException {
+        Statement statement = connection.createStatement();
+        statement.execute(sqlQuery);
+        statement.close();
     }
 
-    void setPacketSQLQueryAdd(String sqlQuery){
+    void setPacketSQLQueryAdd(String sqlQuery) {
         packetSQLQuery.append(sqlQuery);
     }
 
-    void setPacketSQLQueryExecute(){
+    void setPacketSQLQueryExecute() throws SQLException {
         executeSimple(packetSQLQuery.toString());
         packetSQLQuery = new StringBuilder();
     }
