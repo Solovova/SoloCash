@@ -31,7 +31,9 @@ public class RecordMoves extends Record{
         if (rs.next()) {
             RecordAccounts raFrom = RecordAccounts.createExists(db,rs.getInt(2));
             RecordAccounts raTo = RecordAccounts.createExists(db,rs.getInt(3));
-            return new RecordMoves(db, id, rs.getTimestamp(1), raFrom, raTo, rs.getDouble(4), rs.getString(5));
+            RecordMoves recordMoves = new RecordMoves(db, id, rs.getTimestamp(1), raFrom, raTo, rs.getDouble(4), rs.getString(5));
+            rs.close();
+            return recordMoves;
         } else {
             throw new DBException("Moves " + id + " not exist!");
         }

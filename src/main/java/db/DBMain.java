@@ -42,8 +42,8 @@ public class DBMain {
             if (rs.getString(1).startsWith(RecordAccount.tableName)) {
                 dbPostgres.executeSimple(String.format("DROP TABLE IF EXISTS %s;", rs.getString(1)));
             }
-
         }
+        rs.close();
         dbPostgres.executeSimple("DROP TABLE IF EXISTS moves;");
         dbPostgres.executeSimple("DROP TABLE IF EXISTS accounts;");
     }

@@ -4,15 +4,11 @@ import db.*;
 
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Random;
 
 public class TestData {
     public static void fillTestData(DBMain db) {
-        final int numAccounts = 3;
-        final int numMoves = 10;
+        final int numAccounts = 10;
+        final int numMoves = 3000;
 
         for (int i = 0; i < numAccounts; i++) {
             try {

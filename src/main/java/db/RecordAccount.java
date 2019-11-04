@@ -25,7 +25,9 @@ public class RecordAccount extends Record{
         String strSum = new DecimalFormat("#.00#").format(sum).replace(',', '.');
         ResultSet rs = db.dbPostgres.executeQuery(String.format("SELECT id, sum FROM %s WHERE moves = %d AND sum = %s;", tableName+recordAccounts.getId(), recordMoves.getId(),strSum));
         if(rs.next()) {
-            return new RecordAccount(db, rs.getInt(1), recordMoves, recordAccounts, rs.getDouble(2));
+            RecordAccount recordAccount = new RecordAccount(db, rs.getInt(1), recordMoves, recordAccounts, rs.getDouble(2));
+            rs.close();
+            return recordAccount;
         }else {
             throw new DBException("Record account for moves" + recordMoves.getId() + " not exist!");
         }

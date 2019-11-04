@@ -19,7 +19,9 @@ public class RecordAccounts extends Record {
     public static RecordAccounts createExists(DBMain db, int id) throws DBException, SQLException {
         ResultSet rs = db.dbPostgres.getRowByIDFromTable(tableName, id, "name, timeModify");
         if (rs.next()) {
-            return new RecordAccounts(db, id, rs.getString(1), rs.getTimestamp(2));
+            RecordAccounts recordAccounts = new RecordAccounts(db, id, rs.getString(1), rs.getTimestamp(2));
+            rs.close();
+            return recordAccounts;
         } else {
             throw new DBException("Account " + id + " not exist!");
         }
@@ -92,6 +94,7 @@ public class RecordAccounts extends Record {
                 String sqlRequest = String.format("UPDATE %s SET balance = %s WHERE id = %d;", tableAccount, strBalance, recordAccountID);
                 getDb().dbPostgres.setPacketSQLQueryAdd(sqlRequest);
             }
+            rs.close();
             getDb().dbPostgres.setPacketSQLQueryExecute();
 
             this.modify(null,new Timestamp(System.currentTimeMillis()));
