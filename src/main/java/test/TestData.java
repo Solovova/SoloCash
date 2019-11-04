@@ -24,7 +24,7 @@ public class TestData {
 
         for (int i = 0; i < numMoves; i++) {
             int accFrom = (i % numAccounts) + 1;
-            int accTo = ((i + 2) % numAccounts) + 1;
+            int accTo = ((i + 3) % numAccounts) + 1;
             double sum = (i % 20)+1;
             System.out.println(i);
             try {
