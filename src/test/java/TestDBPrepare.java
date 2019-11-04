@@ -8,12 +8,26 @@ import java.sql.Timestamp;
 
 public class TestDBPrepare {
     public static void fillTestData(DBMain db) {
-        final int numAccounts = 3;
-        final int numMoves = 30;
+        final int numAccounts = 10;
+        final int numMoves = 1000;
 
         for (int i = 0; i < numAccounts; i++) {
             try {
                 RecordAccounts.createNew(db, "account" + i, new Timestamp(0)).insert();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        long timeNow = System.currentTimeMillis();
+
+        for (int i = 0; i < numMoves; i++) {
+            int accFrom = (i % numAccounts) + 1;
+            int accTo = ((i + 2) % numAccounts) + 1;
+            double sum = (i % 20)+1;
+            System.out.println(i);
+            try {
+                RecordMoves.createNew(db, new Timestamp(timeNow - (numMoves - i)*1000), RecordAccounts.createExists(db, accFrom), RecordAccounts.createExists(db, accTo), sum, "test" + i).insert();
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -25,17 +39,12 @@ public class TestDBPrepare {
             double sum = (i % 20)+1;
             System.out.println(i);
             try {
-                RecordMoves.createNew(db, new Timestamp(System.currentTimeMillis()- (numMoves - i)*1000), RecordAccounts.createExists(db, accFrom), RecordAccounts.createExists(db, accTo), sum, "test" + i).insert();
+                RecordMoves.createNew(db, new Timestamp(timeNow - (numMoves - i)*1000-500), RecordAccounts.createExists(db, accFrom), RecordAccounts.createExists(db, accTo), sum, "test" + i).insert();
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
 
-        try {
-            RecordMoves.createNew(db, new Timestamp(System.currentTimeMillis() - (numMoves+20)*1000), RecordAccounts.createExists(db, 1), RecordAccounts.createExists(db, 2), 100, "test100").insert();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 
     public static void recalculateTests(DBMain dbMain) {
