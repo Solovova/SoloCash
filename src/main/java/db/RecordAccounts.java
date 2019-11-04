@@ -5,18 +5,79 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.text.DecimalFormat;
 
-public class RecordAccounts {
-    public int id;
+public class RecordAccounts extends Record {
+    final static private String tableName = "accounts";
     public String name;
-    private DBMain db;
+    public Timestamp timeModify;
+
+    RecordAccounts(DBMain db, int id, String name, Timestamp timeModify) {
+        super(db, id, tableName);
+        this.name = name;
+        this.timeModify = timeModify;
+    }
+
+    public static RecordAccounts create(DBMain db, int id) throws DBException, SQLException {
+        ResultSet rs = db.dbPostgres.getRowByIDFromTable(tableName, id, "name, timeModify");
+        if (rs.next()) {
+            return new RecordAccounts(db, id, rs.getString(1), rs.getTimestamp(2));
+        } else {
+            throw new DBException("Account " + id + " not exist!");
+        }
+    }
+
+    public static RecordAccounts create(DBMain db, String name, Timestamp timestamp) {
+        return new RecordAccounts(db, db.dbPostgres.getNextID(tableName), name, timestamp);
+    }
+
+    @Override
+    public void insert() throws DBException {
+        super.insert();
+        String sqlQuery = String.format("INSERT INTO accounts(id, name, timemodify) VALUES(%d, \'%s\', \'%s\');", getId(), name, timeModify);
+        getDb().dbPostgres.executeSimple(sqlQuery);
+
+        String sqlQueryTableCreate = String.format(getDb().SQL_CREATE_EMPTY_ACCOUNT_TABLE, getTableAccountName());
+        getDb().dbPostgres.executeSimple(sqlQueryTableCreate);
+    }
+
+    public void modify(String nameNew, Timestamp timeModifyNew) {
+        StringBuilder sb = new StringBuilder();
+
+        if (nameNew != null && !name.equals(nameNew)) {
+            sb.append(String.format("UPDATE %s SET name = \'%s\' WHERE id = %d;", getTable(), nameNew, getId()));
+            this.name = nameNew;
+        }
+
+        if (timeModifyNew != null && !timeModify.equals(timeModifyNew)) {
+            sb.append(String.format("UPDATE %s SET timeModify = \'%s\' WHERE id = %d;", getTable(), timeModifyNew, getId()));
+            this.timeModify = timeModifyNew;
+        }
+
+        String sqlQuery = sb.toString();
+        System.out.println(sqlQuery);
+        if (!sqlQuery.isEmpty()) {
+            getDb().dbPostgres.executeSimple(sqlQuery);
+        }
+    }
+
+    @Override
+    public void delete() throws DBException {
+        super.delete();
+        getDb().dbPostgres.executeSimple(String.format("DROP TABLE IF EXISTS %s;", getTableAccountName()));
+    }
+
+    private String getTableAccountName() {
+        return RecordAccount.tableName + getId();
+    }
 
     public void recalculate(Timestamp ts) throws DBException {
-        String table = getTableAccountName();
-        checkAccountTableExists();
-        //String sqlR = String.format("SELECT id, sum, balance, LAG(balance,1) OVER(ORDER BY time) prev_balance FROM %s WHERE time >= \'%s\' ORDER BY time;", table, ts);
-        String sqlR = String.format("WITH cte AS (SELECT id, sum, balance, LAG(balance,1) OVER(ORDER BY time, id) prev_balance, time FROM %s ORDER BY time, id) SELECT id, sum, balance, prev_balance FROM cte WHERE time >= \'%s\';", table, ts);
-        //System.out.println(sqlR);
-        ResultSet rs = db.dbPostgres.executeQuery(sqlR);
+        String tableAccount = getTableAccountName();
+        if (!getDb().dbPostgres.isTable(tableAccount)) {
+            throw new DBException("Table " + tableAccount + " not exist!");
+        }
+        if (ts == null) ts = this.timeModify;
+
+        String sqlR = String.format("WITH cte AS (SELECT id, sum, balance, LAG(balance,1) OVER(ORDER BY time, id) prev_balance, time FROM %s ORDER BY time, id) SELECT id, sum, balance, prev_balance FROM cte WHERE time >= \'%s\';", tableAccount, ts);
+        ResultSet rs = getDb().dbPostgres.executeQuery(sqlR);
         double balance = 0;
 
         try {
@@ -28,105 +89,12 @@ public class RecordAccounts {
                 if ((int) (balance * 100) == (int) (rs.getDouble(3) * 100)) continue;
                 int recordAccountID = rs.getInt(1);
                 String strBalance = new DecimalFormat("#.00#").format(balance).replace(',', '.');
-                String sqlRequest = String.format("UPDATE %s SET balance = %s WHERE id = %d;", table, strBalance, recordAccountID);
-                db.dbPostgres.setPacketSQLQueryAdd(sqlRequest);
+                String sqlRequest = String.format("UPDATE %s SET balance = %s WHERE id = %d;", tableAccount, strBalance, recordAccountID);
+                getDb().dbPostgres.setPacketSQLQueryAdd(sqlRequest);
             }
-            db.dbPostgres.setPacketSQLQueryExecute();
+            getDb().dbPostgres.setPacketSQLQueryExecute();
         } catch (SQLException e) {
             e.printStackTrace();
-        }
-    }
-
-    public RecordAccounts(DBMain db, int id, String name) {
-        this.db = db;
-        this.id = id;
-        this.name = name;
-    }
-
-    public void conformityFromDB() throws DBException {
-        checkAccountsTableExists();
-        if (id == -1 && !name.equals("")) {
-            id = db.dbPostgres.getIDFromTableByFiler("accounts", "name", name);
-            if (id == -1) throw new DBException("Account " + name + " not exist!");
-        }
-
-        if (name.equals("")) {
-            ResultSet rs = db.dbPostgres.getRowByIDFromTable("accounts", id, "name");
-            try {
-                if (rs.next()) {
-                    this.name = rs.getString(1);
-                } else {
-                    throw new DBException("Account " + id + " not exist!");
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-                throw new DBException("Account " + id + " not exist!");
-            }
-        }
-    }
-
-    public void checkAccountsTableExists() throws DBException {
-        if (!db.dbPostgres.isTable("accounts")) {
-            throw new DBException("Table accounts not exist!");
-        }
-    }
-
-    public void checkAccountTableExists() throws DBException {
-        if (!db.dbPostgres.isTable(getTableAccountName())) {
-            throw new DBException("Table " + getTableAccountName() + " not exist!");
-        }
-    }
-
-    public String getTableAccountName() {
-        return "account_" + this.id;
-    }
-
-    public boolean checkPossibilityInsert() throws DBException {
-        checkAccountsTableExists();
-
-        if (db.dbPostgres.isStrFieldInTableByFilter("accounts", "name", name)) {
-            throw new DBException("Account " + name + " already exists!");
-        }
-
-        if (id == -1) {
-            id = db.dbPostgres.getNextID("accounts");
-        } else {
-            if (db.dbPostgres.isIDInTable("accounts", id)) {
-                throw new DBException("Id " + id + " is already present in table accounts!");
-            }
-        }
-
-        if (id == -1) throw new DBException("Next id in tables accounts = -1");
-        return true;
-    }
-
-
-
-    public void insert() throws DBException {
-        if (checkPossibilityInsert()) {
-            String sqlQuery = String.format("INSERT INTO accounts(id, name) VALUES(%d, \'%s\');", id, name);
-            db.dbPostgres.executeSimple(sqlQuery);
-
-            String sqlQueryTableCreate = String.format(DBSQLRequests.SQL_CREATE_EMPTY_ACCOUNT_TABLE, "account_" + id);
-            db.dbPostgres.executeSimple(sqlQueryTableCreate);
-        }
-    }
-
-    public boolean checkPossibilityDelete() throws DBException {
-        checkAccountsTableExists();
-        if (id == -1) throw new DBException("Delete account row id = -1");
-
-        if (!db.dbPostgres.isIDInTable("accounts", id)) {
-            throw new DBException("Delete account row id " + id + " not exists!");
-        }
-        return true;
-    }
-
-    public void delete(int moveID) throws DBException {
-        if (checkPossibilityDelete()) {
-            String sqlQuery = String.format("DELETE FROM %s WHERE moves = %d;", getTableAccountName(), moveID);
-            System.out.println(sqlQuery);
-            db.dbPostgres.executeSimple(sqlQuery);
         }
     }
 }

@@ -1,6 +1,8 @@
 import db.DBMain;
 import test.TestData;
 
+import java.sql.SQLException;
+
 public class Main {
     public static void main(String[] args) {
         DBMain dbMain = new DBMain();
@@ -8,7 +10,13 @@ public class Main {
             return;
         }
 
-        TestData.fillTestData(dbMain);
+        try {
+            dbMain.createEmptyTable();
+            TestData.fillTestData(dbMain);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
         //TestData.recalculateTests(dbMain);
 
         dbMain.close();
