@@ -101,7 +101,16 @@ public class RecordAccounts extends Record {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
 
-
+    public double getBalance() throws SQLException {
+        String sqlRequest = String.format("SELECT balance FROM %s ORDER BY time DESC;", getTableAccountName());
+        ResultSet rs = getDb().dbPostgres.executeQuery(sqlRequest);
+        double sumBalance = -999999999;
+        if (rs.next()) {
+            sumBalance = rs.getDouble(1);
+        }
+        rs.close();
+        return sumBalance;
     }
 }

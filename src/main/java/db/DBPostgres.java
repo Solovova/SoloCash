@@ -5,17 +5,22 @@ import java.sql.*;
 public class DBPostgres {
     static private Connection connection = null;
     static private DBPostgres dbPostgres = null;
-    private static final String DB_URL = "jdbc:postgresql://localhost:5432/cashflow";
+    private static final String DB_URL = "jdbc:postgresql://localhost:5432/";
     private static final String USER = "cashflow";
     private static final String PASS = "vbwqu1pa";
     private StringBuilder packetSQLQuery = new StringBuilder();
+    private String dbName;
 
-    static DBPostgres create() {
+    static DBPostgres create(String dbName) {
         if (dbPostgres == null) {
-            dbPostgres = new DBPostgres();
+            dbPostgres = new DBPostgres(dbName);
             dbPostgres.connect();
         }
         return dbPostgres;
+    }
+
+    DBPostgres(String dbName){
+        this.dbName = dbName;
     }
 
     private void connect() {
@@ -28,7 +33,7 @@ public class DBPostgres {
         }
 
         try {
-            connection = DriverManager.getConnection(DB_URL, USER, PASS);
+            connection = DriverManager.getConnection(DB_URL+this.dbName, USER, PASS);
         } catch (SQLException e) {
             System.out.println("Connection Failed");
             e.printStackTrace();

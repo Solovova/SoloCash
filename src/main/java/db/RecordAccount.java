@@ -60,5 +60,4 @@ public class RecordAccount extends Record{
     private String getTableAccountName() {
         return tableName + recordAccounts.getId();
     }
-
 }

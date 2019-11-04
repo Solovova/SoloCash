@@ -27,8 +27,8 @@ public class DBMain {
 
     public DBPostgres dbPostgres;
 
-    public DBMain() {
-        dbPostgres = DBPostgres.create();
+    public DBMain(String dbName) {
+        dbPostgres = DBPostgres.create(dbName);
         if (!dbPostgres.isConnection()) return;
     }
 
@@ -51,6 +51,19 @@ public class DBMain {
     public void createEmptyTable() throws SQLException {
         this.dropAllTable();
         dbPostgres.executeSimple(SQL_CREATE_EMPTY_TABLE);
+    }
+
+    public double getSummaryBalance() throws SQLException, DBException {
+        ResultSet rs = dbPostgres.executeQuery(String.format("SELECT id FROM accounts;"));
+        double summaryBalance = 0.0;
+        while (rs.next()) {
+            double balance = RecordAccounts.createExists(this,rs.getInt(1)).getBalance();
+            summaryBalance += balance;
+            System.out.println("Account " + rs.getInt(1) + " : " + balance);
+        }
+        rs.close();
+        System.out.println("Summary balance  : " + summaryBalance);
+        return summaryBalance;
     }
 
     public boolean isConnection() {

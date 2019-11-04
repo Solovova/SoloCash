@@ -1,11 +1,12 @@
-package test;
-
-import db.*;
+import db.DBException;
+import db.DBMain;
+import db.RecordAccounts;
+import db.RecordMoves;
 
 import java.sql.SQLException;
 import java.sql.Timestamp;
 
-public class TestData {
+public class TestDBPrepare {
     public static void fillTestData(DBMain db) {
         final int numAccounts = 3;
         final int numMoves = 30;
@@ -40,10 +41,19 @@ public class TestData {
     public static void recalculateTests(DBMain dbMain) {
         try {
             //RecordMoves.createExists(dbMain,2).delete();
-            RecordMoves.createExists(dbMain,2).modify(null,null,RecordAccounts.createExists(dbMain,2), null,null);
+            //RecordMoves.createExists(dbMain,2).modify(null,null,RecordAccounts.createExists(dbMain,2), null,null);
+            System.out.println(RecordAccounts.createExists(dbMain,2).getBalance());
         } catch (DBException e) {
             e.printStackTrace();
         } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            dbMain.getSummaryBalance();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } catch (DBException e) {
             e.printStackTrace();
         }
     }
