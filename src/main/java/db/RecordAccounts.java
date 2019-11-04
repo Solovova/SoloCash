@@ -16,7 +16,7 @@ public class RecordAccounts extends Record {
         this.timeModify = timeModify;
     }
 
-    public static RecordAccounts create(DBMain db, int id) throws DBException, SQLException {
+    public static RecordAccounts createExists(DBMain db, int id) throws DBException, SQLException {
         ResultSet rs = db.dbPostgres.getRowByIDFromTable(tableName, id, "name, timeModify");
         if (rs.next()) {
             return new RecordAccounts(db, id, rs.getString(1), rs.getTimestamp(2));
@@ -25,7 +25,7 @@ public class RecordAccounts extends Record {
         }
     }
 
-    public static RecordAccounts create(DBMain db, String name, Timestamp timestamp) {
+    public static RecordAccounts createNew(DBMain db, String name, Timestamp timestamp) {
         return new RecordAccounts(db, db.dbPostgres.getNextID(tableName), name, timestamp);
     }
 

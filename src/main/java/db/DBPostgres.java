@@ -8,7 +8,6 @@ public class DBPostgres {
     private static final String DB_URL = "jdbc:postgresql://localhost:5432/cashflow";
     private static final String USER = "cashflow";
     private static final String PASS = "vbwqu1pa";
-    private PreparedStatement pst;
     private StringBuilder packetSQLQuery = new StringBuilder();
 
     static DBPostgres create() {
@@ -102,6 +101,7 @@ public class DBPostgres {
     }
 
     public ResultSet getRowByIDFromTable(String table, int id, String row) {
+        System.out.println(String.format("SELECT %s FROM %s WHERE id =%d;", row, table, id));
         return dbPostgres.executeQuery(String.format("SELECT %s FROM %s WHERE id =%d;", row, table, id));
     }
 
@@ -109,8 +109,7 @@ public class DBPostgres {
     // base functions
     public ResultSet executeQuery(String sqlQuery) {
         try {
-            if (pst != null) pst.close();
-            pst = connection.prepareStatement(sqlQuery);
+            PreparedStatement pst = connection.prepareStatement(sqlQuery);
             return pst.executeQuery();
         } catch (SQLException e) {
             e.printStackTrace();
