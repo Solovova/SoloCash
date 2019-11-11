@@ -1,8 +1,17 @@
 package db;
 
+import com.google.gson.Gson;
+import db.dataclas.GsonContainer;
+import db.requests.RequestAccounts;
+import db.requests.RequestContainer;
+import db.requests.RequestParent;
+
 import java.sql.*;
+import java.util.Map;
 
 public class DBMain {
+    private RequestContainer requestContainer;
+
     final private static String SQL_CREATE_EMPTY_TABLE = "CREATE TABLE IF NOT EXISTS accounts (" +
             "id serial PRIMARY KEY," +
             "name VARCHAR(25)," +
@@ -29,6 +38,7 @@ public class DBMain {
 
     public DBMain(String dbName) {
         dbPostgres = DBPostgres.create(dbName);
+        requestContainer = new RequestContainer(this);
         if (!dbPostgres.isConnection()) return;
     }
 
@@ -68,5 +78,9 @@ public class DBMain {
 
     public boolean isConnection() {
         return dbPostgres.isConnection();
+    }
+
+    public String getAnswer(String request) {
+        return requestContainer.getAnswer(request);
     }
 }
