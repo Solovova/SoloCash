@@ -40,7 +40,7 @@ public class RecordMoves extends Record{
     }
 
     @Override
-    public void insert()  {
+    public void insert() {
         try {
             getConnection().setAutoCommit(false);
 
