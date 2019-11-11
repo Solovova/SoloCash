@@ -5,12 +5,12 @@ import db.DBMain;
 import db.dataclas.GsonContainer;
 
 import java.util.HashMap;
-import java.util.Map;
 
 public class RequestContainer {
-    private Map<String, RequestParent> container = new HashMap();
+    private HashMap<String,RequestParent> container = new HashMap<>();
     private Gson gson = new Gson();
     public RequestContainer(DBMain db) {
+        System.out.println(RequestAccounts.IDENTIFIER);
         container.put(RequestAccounts.IDENTIFIER, new RequestAccounts(db));
     }
 

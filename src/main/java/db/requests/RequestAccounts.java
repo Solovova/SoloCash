@@ -8,12 +8,11 @@ import db.dataclas.GsonContainer;
 
 import java.sql.ResultSet;
 import java.util.ArrayList;
-import java.util.List;
 
 public class RequestAccounts extends RequestParent {
     static String IDENTIFIER = "RequestAccounts";
 
-    public RequestAccounts(DBMain db) {
+    RequestAccounts(DBMain db) {
         super(db);
     }
 
@@ -23,7 +22,7 @@ public class RequestAccounts extends RequestParent {
 
         ResultSet rs = db.dbPostgres.executeQuery("SELECT * FROM accounts");
 
-        List<AccountAnsRequest> accountAnsRequest = new ArrayList();
+        ArrayList<AccountAnsRequest> accountAnsRequest = new ArrayList<>();
         try {
             while (rs.next()) {
                 int id = rs.getInt(1);

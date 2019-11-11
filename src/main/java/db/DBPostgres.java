@@ -105,7 +105,7 @@ public class DBPostgres {
         return dbPostgres.executeQueryIsRows(String.format("SELECT %s FROM %s WHERE %s='%s';", field, table, field, value));
     }
 
-    public ResultSet getRowByIDFromTable(String table, int id, String row) {
+    ResultSet getRowByIDFromTable(String table, int id, String row) {
         System.out.println(String.format("SELECT %s FROM %s WHERE id =%d;", row, table, id));
         return dbPostgres.executeQuery(String.format("SELECT %s FROM %s WHERE id =%d;", row, table, id));
     }
@@ -122,7 +122,7 @@ public class DBPostgres {
         return null;
     }
 
-    public boolean executeQueryIsRows(String sqlQuery) {
+    private boolean executeQueryIsRows(String sqlQuery) {
         try {
             return executeQuery(sqlQuery).next();
         } catch (SQLException e) {
