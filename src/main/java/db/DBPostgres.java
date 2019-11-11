@@ -106,6 +106,10 @@ public class DBPostgres {
     }
 
     ResultSet getRowByIDFromTable(String table, int id, String row) {
+//        PreparedStatement pst = connection.prepareStatement("SELECT ? FROM ? WHERE id = ?;");
+//        pst.setString(1,table);
+
+
         System.out.println(String.format("SELECT %s FROM %s WHERE id =%d;", row, table, id));
         return dbPostgres.executeQuery(String.format("SELECT %s FROM %s WHERE id =%d;", row, table, id));
     }
@@ -115,6 +119,7 @@ public class DBPostgres {
     public ResultSet executeQuery(String sqlQuery) {
         try {
             PreparedStatement pst = connection.prepareStatement(sqlQuery);
+
             return pst.executeQuery();
         } catch (SQLException e) {
             e.printStackTrace();

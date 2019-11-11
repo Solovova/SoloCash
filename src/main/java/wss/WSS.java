@@ -1,12 +1,9 @@
 package wss;
 
-import com.google.gson.Gson;
 import db.DBMain;
-import db.dataclas.GsonContainer;
 import org.java_websocket.WebSocket;
 import org.java_websocket.handshake.ClientHandshake;
 import org.java_websocket.server.WebSocketServer;
-import db.requests.RequestAccounts;
 
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
@@ -53,9 +50,6 @@ public class WSS extends WebSocketServer {
     @Override
     public void onError( WebSocket conn, Exception ex ) {
         ex.printStackTrace();
-        if( conn != null ) {
-            // some errors like port binding failed may not be assignable to a specific websocket
-        }
     }
 
     @Override
