@@ -40,15 +40,36 @@ public class RecordMoves extends Record{
     }
 
     @Override
-    public void insert() throws DBException, SQLException {
-        super.insert();
-        String strSum = new DecimalFormat("#.00#").format(sum).replace(',', '.');
-        String sqlQuery = String.format("INSERT INTO moves(id, time, accountFrom, accountTo, sum, describe) " +
-                "VALUES(%d, \'%s\', %d, %d, %s, \'%s\');", getId(), time, accountFrom.getId(), accountTo.getId(),strSum,describe);
-        getDb().dbPostgres.executeSimple(sqlQuery);
+    public void insert()  {
+        try {
+            getConnection().setAutoCommit(false);
 
-        RecordAccount.createNew(getDb(),this,accountFrom,-this.sum).insert();
-        RecordAccount.createNew(getDb(),this,accountTo,this.sum).insert();
+            super.insert();
+            String strSum = new DecimalFormat("#.00#").format(sum).replace(',', '.');
+            String sqlQuery = String.format("INSERT INTO moves(id, time, accountFrom, accountTo, sum, describe) " +
+                    "VALUES(%d, \'%s\', %d, %d, %s, \'%s\');", getId(), time, accountFrom.getId(), accountTo.getId(),strSum,describe);
+            getDb().dbPostgres.executeSimple(sqlQuery);
+
+            RecordAccount.createNew(getDb(),this,accountFrom,-this.sum).insert();
+            RecordAccount.createNew(getDb(),this,accountTo,this.sum).insert();
+
+            getConnection().commit();
+        }
+        catch (DBException | SQLException e) {
+            e.printStackTrace();
+            try {
+                getConnection().rollback();
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+            }
+        }finally {
+            try {
+                getConnection().setAutoCommit(true);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+
     }
 
     @Override

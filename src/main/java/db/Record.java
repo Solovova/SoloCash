@@ -1,5 +1,6 @@
 package db;
 
+import java.sql.Connection;
 import java.sql.SQLException;
 
 public class Record {
@@ -19,6 +20,10 @@ public class Record {
 
     public DBMain getDb() {
         return db;
+    }
+
+    public Connection getConnection() {
+        return db.dbPostgres.getConnection();
     }
 
     public String getTable() {

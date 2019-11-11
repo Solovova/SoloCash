@@ -114,6 +114,9 @@ public class DBPostgres {
         return dbPostgres.executeQuery(String.format("SELECT %s FROM %s WHERE id =%d;", row, table, id));
     }
 
+    public Connection getConnection() {
+        return connection;
+    }
 
     // base functions
     public ResultSet executeQuery(String sqlQuery) {

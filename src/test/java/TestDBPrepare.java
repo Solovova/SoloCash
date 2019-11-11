@@ -47,23 +47,7 @@ public class TestDBPrepare {
 
     }
 
-    public static void recalculateTests(DBMain dbMain) {
-        try {
-            //RecordMoves.createExists(dbMain,2).delete();
-            //RecordMoves.createExists(dbMain,2).modify(null,null,RecordAccounts.createExists(dbMain,2), null,null);
-            System.out.println(RecordAccounts.createExists(dbMain,2).getBalance());
-        } catch (DBException e) {
-            e.printStackTrace();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        try {
-            dbMain.getSummaryBalance();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } catch (DBException e) {
-            e.printStackTrace();
-        }
+    public static void recalculateTests(DBMain dbMain) throws DBException, SQLException {
+        RecordMoves.createNew(dbMain,new Timestamp(System.currentTimeMillis()),RecordAccounts.createExists(dbMain,2), RecordAccounts.createExists(dbMain,2),300000.0, "test").insert();
     }
 }
