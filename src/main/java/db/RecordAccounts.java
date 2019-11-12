@@ -1,5 +1,6 @@
 package db;
 
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
@@ -32,13 +33,12 @@ public class RecordAccounts extends Record {
     }
 
     @Override
-    public void insert() throws DBException, SQLException {
+    protected void insert() throws DBException, SQLException {
         super.insert();
         String sqlQuery = String.format("INSERT INTO accounts(id, name, timemodify) VALUES(%d, \'%s\', \'%s\');", getId(), name, timeModify);
-        getDb().dbPostgres.executeSimple(sqlQuery);
-
+        getDb().dbPostgres.executeUpdate(sqlQuery);
         String sqlQueryTableCreate = String.format(getDb().SQL_CREATE_EMPTY_ACCOUNT_TABLE, getTableAccountName());
-        getDb().dbPostgres.executeSimple(sqlQueryTableCreate);
+        getDb().dbPostgres.executeUpdate(sqlQueryTableCreate);
     }
 
     public void modify(String nameNew, Timestamp timeModifyNew) throws SQLException {
@@ -55,34 +55,32 @@ public class RecordAccounts extends Record {
         }
 
         String sqlQuery = sb.toString();
-        //System.out.println(sqlQuery);
         if (!sqlQuery.isEmpty()) {
-            getDb().dbPostgres.executeSimple(sqlQuery);
+            getDb().dbPostgres.executeUpdate(sqlQuery);
         }
     }
 
     @Override
     public void delete() throws DBException, SQLException {
         super.delete();
-        getDb().dbPostgres.executeSimple(String.format("DROP TABLE IF EXISTS %s;", getTableAccountName()));
+        getDb().dbPostgres.executeUpdate(String.format("DROP TABLE IF EXISTS %s;", getTableAccountName()));
     }
 
     private String getTableAccountName() {
         return RecordAccount.tableName + getId();
     }
 
-    public void recalculate(Timestamp ts) throws DBException {
+    public void recalculate(Timestamp ts) throws DBException, SQLException {
         String tableAccount = getTableAccountName();
-        if (!getDb().dbPostgres.isTable(tableAccount)) {
-            throw new DBException("Table " + tableAccount + " not exist!");
-        }
         if (ts == null) ts = this.timeModify;
 
-        String sqlR = String.format("WITH cte AS (SELECT id, sum, balance, LAG(balance,1) OVER(ORDER BY time, id) prev_balance, time FROM %s ORDER BY time, id) SELECT id, sum, balance, prev_balance FROM cte WHERE time >= \'%s\';", tableAccount, ts);
-        ResultSet rs = getDb().dbPostgres.executeQuery(sqlR);
+        String sqlQuery = String.format("WITH cte AS (SELECT id, sum, balance, LAG(balance,1) OVER(ORDER BY time, id) prev_balance, time FROM %s ORDER BY time, id) SELECT id, sum, balance, prev_balance FROM cte WHERE time >= \'%s\';", tableAccount, ts);
+        PreparedStatement pst = getConnection().prepareStatement(sqlQuery);
+        ResultSet rs = pst.executeQuery();
         double balance = 0;
 
         try {
+            StringBuilder packetSQLQuery = new StringBuilder();
             while (rs.next()) {
                 if (rs.isFirst()) {
                     balance = rs.getDouble(4);
@@ -92,14 +90,14 @@ public class RecordAccounts extends Record {
                 int recordAccountID = rs.getInt(1);
                 String strBalance = new DecimalFormat("#.00#").format(balance).replace(',', '.');
                 String sqlRequest = String.format("UPDATE %s SET balance = %s WHERE id = %d;", tableAccount, strBalance, recordAccountID);
-                getDb().dbPostgres.setPacketSQLQueryAdd(sqlRequest);
+                packetSQLQuery.append(sqlRequest);
             }
-            rs.close();
-            getDb().dbPostgres.setPacketSQLQueryExecute();
+            getDb().dbPostgres.executeUpdate(packetSQLQuery.toString());
 
-            this.modify(null,new Timestamp(System.currentTimeMillis()));
-        } catch (SQLException e) {
-            e.printStackTrace();
+            this.modify( null, new Timestamp(System.currentTimeMillis()));
+        } finally {
+            rs.close();
+            pst.close();
         }
     }
 

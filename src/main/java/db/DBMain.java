@@ -45,17 +45,17 @@ public class DBMain {
         ResultSet rs = dbPostgres.executeQuery(String.format("SELECT TABLE_NAME FROM cashflow.INFORMATION_SCHEMA.TABLES;"));
         while (rs.next()) {
             if (rs.getString(1).startsWith(RecordAccount.tableName)) {
-                dbPostgres.executeSimple(String.format("DROP TABLE IF EXISTS %s;", rs.getString(1)));
+                dbPostgres.executeUpdate(String.format("DROP TABLE IF EXISTS %s;", rs.getString(1)));
             }
         }
         rs.close();
-        dbPostgres.executeSimple("DROP TABLE IF EXISTS moves;");
-        dbPostgres.executeSimple("DROP TABLE IF EXISTS accounts;");
+        dbPostgres.executeUpdate("DROP TABLE IF EXISTS moves;");
+        dbPostgres.executeUpdate("DROP TABLE IF EXISTS accounts;");
     }
 
     public void createEmptyTable() throws SQLException {
         this.dropAllTable();
-        dbPostgres.executeSimple(SQL_CREATE_EMPTY_TABLE);
+        dbPostgres.executeUpdate(SQL_CREATE_EMPTY_TABLE);
     }
 
     public double getSummaryBalance() throws SQLException, DBException {

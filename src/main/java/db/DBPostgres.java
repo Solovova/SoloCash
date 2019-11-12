@@ -81,10 +81,6 @@ public class DBPostgres {
         return -1;
     }
 
-    boolean isTable(String name) {
-        return executeQueryIsRows(String.format("SELECT TABLE_NAME FROM cashflow.INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = \'%s\';", name));
-    }
-
     int getIDFromTableByFiler(String table, String fieldName, String name) {
         ResultSet rs = dbPostgres.executeQuery(String.format("SELECT id FROM %s WHERE %s='%s';", table, fieldName, name));
         try {
@@ -95,14 +91,6 @@ public class DBPostgres {
             e.printStackTrace();
         }
         return -1;
-    }
-
-    boolean isIDInTable(String table, int id) {
-        return dbPostgres.executeQueryIsRows(String.format("SELECT id FROM %s WHERE id=%d;", table, id));
-    }
-
-    boolean isStrFieldInTableByFilter(String table, String field, String value) {
-        return dbPostgres.executeQueryIsRows(String.format("SELECT %s FROM %s WHERE %s='%s';", field, table, field, value));
     }
 
     ResultSet getRowByIDFromTable(String table, int id, String row) {
@@ -139,18 +127,9 @@ public class DBPostgres {
         return false;
     }
 
-    void executeSimple(String sqlQuery) throws SQLException {
-        Statement statement = connection.createStatement();
-        statement.execute(sqlQuery);
-        statement.close();
-    }
-
-    void setPacketSQLQueryAdd(String sqlQuery) {
-        packetSQLQuery.append(sqlQuery);
-    }
-
-    void setPacketSQLQueryExecute() throws SQLException {
-        executeSimple(packetSQLQuery.toString());
-        packetSQLQuery = new StringBuilder();
+    void executeUpdate(String sqlQuery) throws SQLException {
+        PreparedStatement pst = connection.prepareStatement(sqlQuery);
+        pst.executeUpdate();
+        pst.close();
     }
 }

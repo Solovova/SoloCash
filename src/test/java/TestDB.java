@@ -16,10 +16,10 @@ public class TestDB {
         }
 
         try {
-            //dbMain.createEmptyTable();
-            //TestDBPrepare.fillTestData(dbMain);
-            TestDBPrepare.recalculateTests(dbMain);
-        } catch (SQLException | DBException e) {
+            dbMain.createEmptyTable();
+            TestDBPrepare.fillTestData(dbMain);
+            //TestDBPrepare.recalculateTests(dbMain);
+        } catch (SQLException  e) {
             e.printStackTrace();
         }
 

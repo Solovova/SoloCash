@@ -1,11 +1,14 @@
 package db;
 
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.text.DecimalFormat;
+import java.util.HashMap;
+import java.util.Map;
 
-public class RecordMoves extends Record{
+public class RecordMoves extends Record {
     final static private String tableName = "moves";
     public Timestamp time;
     public RecordAccounts accountFrom;
@@ -14,7 +17,7 @@ public class RecordMoves extends Record{
     public String describe;
 
     RecordMoves(DBMain db, int id, Timestamp time, RecordAccounts accountFrom, RecordAccounts accountTo, double sum, String describe) {
-        super(db, id,tableName);
+        super(db, id, tableName);
         this.time = time;
         this.accountFrom = accountFrom;
         this.accountTo = accountTo;
@@ -22,15 +25,15 @@ public class RecordMoves extends Record{
         this.describe = describe;
     }
 
-    public static RecordMoves createNew(DBMain db, Timestamp time, RecordAccounts accountFrom, RecordAccounts accountTo, double sum, String describe){
-        return new RecordMoves(db, db.dbPostgres.getNextID(tableName), time, accountFrom,accountTo,sum,describe);
+    public static RecordMoves createNew(DBMain db, Timestamp time, RecordAccounts accountFrom, RecordAccounts accountTo, double sum, String describe) {
+        return new RecordMoves(db, db.dbPostgres.getNextID(tableName), time, accountFrom, accountTo, sum, describe);
     }
 
     public static RecordMoves createExists(DBMain db, int id) throws DBException, SQLException {
         ResultSet rs = db.dbPostgres.getRowByIDFromTable(tableName, id, "time, accountFrom, accountTo, sum, describe");
         if (rs.next()) {
-            RecordAccounts raFrom = RecordAccounts.createExists(db,rs.getInt(2));
-            RecordAccounts raTo = RecordAccounts.createExists(db,rs.getInt(3));
+            RecordAccounts raFrom = RecordAccounts.createExists(db, rs.getInt(2));
+            RecordAccounts raTo = RecordAccounts.createExists(db, rs.getInt(3));
             RecordMoves recordMoves = new RecordMoves(db, id, rs.getTimestamp(1), raFrom, raTo, rs.getDouble(4), rs.getString(5));
             rs.close();
             return recordMoves;
@@ -40,42 +43,21 @@ public class RecordMoves extends Record{
     }
 
     @Override
-    public void insert() {
-        try {
-            getConnection().setAutoCommit(false);
+    protected void insert() throws DBException, SQLException {
+        super.insert();
+        String strSum = new DecimalFormat("#.00#").format(sum).replace(',', '.');
+        String sqlQuery = String.format("INSERT INTO moves(id, time, accountFrom, accountTo, sum, describe) " +
+                "VALUES(%d, \'%s\', %d, %d, %s, \'%s\');", getId(), time, accountFrom.getId(), accountTo.getId(), strSum, describe);
+        getDb().dbPostgres.executeUpdate(sqlQuery);
 
-            super.insert();
-            String strSum = new DecimalFormat("#.00#").format(sum).replace(',', '.');
-            String sqlQuery = String.format("INSERT INTO moves(id, time, accountFrom, accountTo, sum, describe) " +
-                    "VALUES(%d, \'%s\', %d, %d, %s, \'%s\');", getId(), time, accountFrom.getId(), accountTo.getId(),strSum,describe);
-            getDb().dbPostgres.executeSimple(sqlQuery);
-
-            RecordAccount.createNew(getDb(),this,accountFrom,-this.sum).insert();
-            RecordAccount.createNew(getDb(),this,accountTo,this.sum).insert();
-
-            getConnection().commit();
-        }
-        catch (DBException | SQLException e) {
-            e.printStackTrace();
-            try {
-                getConnection().rollback();
-            } catch (SQLException ex) {
-                ex.printStackTrace();
-            }
-        }finally {
-            try {
-                getConnection().setAutoCommit(true);
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        }
-
+        RecordAccount.createNew(getDb(), this, accountFrom, -this.sum).insert();
+        RecordAccount.createNew(getDb(), this, accountTo, this.sum).insert();
     }
 
     @Override
     public void delete() throws DBException, SQLException {
-        RecordAccount.createExists(getDb(),this,accountFrom,-this.sum).delete();
-        RecordAccount.createExists(getDb(),this,accountTo, this.sum).delete();
+        RecordAccount.createExists(getDb(), this, accountFrom, -this.sum).delete();
+        RecordAccount.createExists(getDb(), this, accountTo, this.sum).delete();
         super.delete();
     }
 
@@ -93,13 +75,13 @@ public class RecordMoves extends Record{
             needRefresh = true;
         }
 
-        if (newRaFrom != null && newRaFrom.getId()!=this.accountFrom.getId()) {
+        if (newRaFrom != null && newRaFrom.getId() != this.accountFrom.getId()) {
             sb.append(String.format("UPDATE %s SET accountfrom = %d WHERE id = %d;", getTable(), newRaFrom.getId(), getId()));
             this.accountFrom = newRaFrom;
             needRefresh = true;
         }
 
-        if (newRaTo != null && newRaTo.getId()!=this.accountTo.getId()) {
+        if (newRaTo != null && newRaTo.getId() != this.accountTo.getId()) {
             sb.append(String.format("UPDATE %s SET accountto = %d WHERE id = %d;", getTable(), newRaTo.getId(), getId()));
             this.accountTo = newRaTo;
             needRefresh = true;
@@ -120,15 +102,16 @@ public class RecordMoves extends Record{
         String sqlQuery = sb.toString();
         //System.out.println(sqlQuery);
         if (!sqlQuery.isEmpty()) {
-            getDb().dbPostgres.executeSimple(sqlQuery);
+            getDb().dbPostgres.executeUpdate(sqlQuery);
         }
 
-        if (needRefresh) {
-            RecordAccount.createExists(getDb(),this,oldRaFrom,-oldSum).delete();
-            RecordAccount.createExists(getDb(),this,oldRaTo, oldSum).delete();
 
-            RecordAccount.createNew(getDb(),this,accountFrom,-this.sum).insert();
-            RecordAccount.createNew(getDb(),this,accountTo,this.sum).insert();
+        if (needRefresh) {
+            RecordAccount.createExists(getDb(), this, oldRaFrom, -oldSum).delete();
+            RecordAccount.createExists(getDb(), this, oldRaTo, oldSum).delete();
+
+            RecordAccount.createNew(getDb(), this, accountFrom, -this.sum).insert();
+            RecordAccount.createNew(getDb(), this, accountTo, this.sum).insert();
         }
     }
 }
