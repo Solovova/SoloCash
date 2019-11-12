@@ -69,18 +69,6 @@ public class DBPostgres {
         }
     }
 
-    int getNextID(String table) {
-        ResultSet rs = executeQuery(String.format("SELECT max(id) FROM %s;", table));
-        try {
-            if (rs.next()) {
-                return rs.getInt(1) + 1;
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return -1;
-    }
-
     int getIDFromTableByFiler(String table, String fieldName, String name) {
         ResultSet rs = dbPostgres.executeQuery(String.format("SELECT id FROM %s WHERE %s='%s';", table, fieldName, name));
         try {
