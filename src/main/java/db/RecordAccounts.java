@@ -71,6 +71,10 @@ public class RecordAccounts extends Record {
     }
 
     public void recalculate(Timestamp ts) throws DBException, SQLException {
+        if(!getDb().getAutoRecalculateAccount()) {
+            return;
+        }
+
         String tableAccount = getTableAccountName();
         if (ts == null) ts = this.timeModify;
 

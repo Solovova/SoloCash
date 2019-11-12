@@ -21,6 +21,7 @@ public class TestDBPrepare {
             }
         }
 
+        db.setAutoRecalculateAccount(false);
         long timeNow = System.currentTimeMillis();
 
 
@@ -56,6 +57,8 @@ public class TestDBPrepare {
                 e.printStackTrace();
             }
         }
+
+        db.setAutoRecalculateAccount(true);
 
     }
 
