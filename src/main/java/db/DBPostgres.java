@@ -128,8 +128,8 @@ public class DBPostgres {
     }
 
     void executeUpdate(String sqlQuery) throws SQLException {
-        PreparedStatement pst = connection.prepareStatement(sqlQuery);
-        pst.executeUpdate();
-        pst.close();
+        try(PreparedStatement pst = connection.prepareStatement(sqlQuery)) {
+            pst.executeUpdate();
+        }
     }
 }

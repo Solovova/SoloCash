@@ -29,16 +29,23 @@ public class RecordAccounts extends Record {
     }
 
     public static RecordAccounts createNew(DBMain db, String name, Timestamp timestamp) {
-        return new RecordAccounts(db, db.dbPostgres.getNextID(tableName), name, timestamp);
+        return new RecordAccounts(db, -1, name, timestamp);
     }
 
     @Override
-    protected void insert() throws DBException, SQLException {
+    protected void insert() throws DBException, SQLException { //++
         super.insert();
-        String sqlQuery = String.format("INSERT INTO accounts(id, name, timemodify) VALUES(%d, \'%s\', \'%s\');", getId(), name, timeModify);
-        getDb().dbPostgres.executeUpdate(sqlQuery);
-        String sqlQueryTableCreate = String.format(getDb().SQL_CREATE_EMPTY_ACCOUNT_TABLE, getTableAccountName());
-        getDb().dbPostgres.executeUpdate(sqlQueryTableCreate);
+        try(PreparedStatement pst = getConnection().prepareStatement(
+                String.format("INSERT INTO accounts(name, timemodify) VALUES(\'%s\', \'%s\') RETURNING id;", name, timeModify))) {
+            ResultSet i = pst.executeQuery();
+            i.next();
+            this.setId(i.getInt(1));
+
+            try(PreparedStatement pstCreate = getConnection().prepareStatement(
+                    String.format(getDb().SQL_CREATE_EMPTY_ACCOUNT_TABLE, getTableAccountName()))){
+                pstCreate.executeUpdate();
+            }
+        }
     }
 
     public void modify(String nameNew, Timestamp timeModifyNew) throws SQLException {

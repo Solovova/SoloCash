@@ -26,7 +26,7 @@ public class RecordMoves extends Record {
     }
 
     public static RecordMoves createNew(DBMain db, Timestamp time, RecordAccounts accountFrom, RecordAccounts accountTo, double sum, String describe) {
-        return new RecordMoves(db, db.dbPostgres.getNextID(tableName), time, accountFrom, accountTo, sum, describe);
+        return new RecordMoves(db, -1 , time, accountFrom, accountTo, sum, describe);
     }
 
     public static RecordMoves createExists(DBMain db, int id) throws DBException, SQLException {
@@ -43,12 +43,17 @@ public class RecordMoves extends Record {
     }
 
     @Override
-    protected void insert() throws DBException, SQLException {
+    protected void insert() throws DBException, SQLException { //++
         super.insert();
         String strSum = new DecimalFormat("#.00#").format(sum).replace(',', '.');
-        String sqlQuery = String.format("INSERT INTO moves(id, time, accountFrom, accountTo, sum, describe) " +
-                "VALUES(%d, \'%s\', %d, %d, %s, \'%s\');", getId(), time, accountFrom.getId(), accountTo.getId(), strSum, describe);
-        getDb().dbPostgres.executeUpdate(sqlQuery);
+        try(PreparedStatement pst = getConnection().prepareStatement(
+                String.format("INSERT INTO moves(time, accountFrom, accountTo, sum, describe) VALUES(\'%s\', %d, %d, %s, \'%s\') RETURNING id;",
+                        time, accountFrom.getId(), accountTo.getId(), strSum, describe)
+        )) {
+            ResultSet i = pst.executeQuery();
+            i.next();
+            this.setId(i.getInt(1));
+        }
 
         RecordAccount.createNew(getDb(), this, accountFrom, -this.sum).insert();
         RecordAccount.createNew(getDb(), this, accountTo, this.sum).insert();

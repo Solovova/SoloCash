@@ -21,7 +21,7 @@ public class RecordAccount extends Record {
     }
 
     public static RecordAccount createNew(DBMain db, RecordMoves recordMoves, RecordAccounts recordAccounts, double sum) {
-        return new RecordAccount(db, db.dbPostgres.getNextID(tableName + recordAccounts.getId()), recordMoves, recordAccounts, sum);
+        return new RecordAccount(db, -1 , recordMoves, recordAccounts, sum);
     }
 
     public static RecordAccount createExists(DBMain db, RecordMoves recordMoves, RecordAccounts recordAccounts, double sum) throws SQLException, DBException {
@@ -37,11 +37,17 @@ public class RecordAccount extends Record {
     }
 
     @Override
-    protected void insert() throws DBException, SQLException {
+    protected void insert() throws DBException, SQLException {  //++
         super.insert();
         String strSum = new DecimalFormat("#.00#").format(sum).replace(',', '.');
-        String sqlQuery = String.format("INSERT INTO %s (id, moves, time , sum) VALUES(%d, %d, \'%s\' ,%s);", getTableAccountName(), getId(), recordMoves.getId(), recordMoves.time, strSum);
-        getDb().dbPostgres.executeUpdate(sqlQuery);
+        try(PreparedStatement pst = getConnection().prepareStatement(
+                String.format("INSERT INTO %s (moves, time , sum) VALUES(%d, \'%s\' ,%s) RETURNING id;",
+                        getTableAccountName(), recordMoves.getId(), recordMoves.time, strSum)
+        )) {
+            ResultSet i = pst.executeQuery();
+            i.next();
+            this.setId(i.getInt(1));
+        }
 
         //ToDo
         if (recordAccounts.timeModify.after(recordMoves.time)) {

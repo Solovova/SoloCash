@@ -10,7 +10,7 @@ import java.sql.Timestamp;
 public class TestDBPrepare {
     public static void fillTestData(DBMain db) {
         final int numAccounts = 10;
-        final int numMoves = 1000;
+        final int numMoves = 10000;
 
         for (int i = 0; i < numAccounts; i++) {
             try {

@@ -22,6 +22,13 @@ public class Record {
         return id;
     }
 
+    public void setId(int id) throws DBException {
+        if (this.id != -1) {
+            throw new DBException("Set id when it not -1");
+        }
+        this.id = id;
+    }
+
     public DBMain getDb() {
         return db;
     }
