@@ -30,15 +30,20 @@ public class RecordMoves extends Record {
     }
 
     public static RecordMoves createExists(DBMain db, int id) throws DBException, SQLException {
-        ResultSet rs = db.dbPostgres.getRowByIDFromTable(tableName, id, "time, accountFrom, accountTo, sum, describe");
-        if (rs.next()) {
-            RecordAccounts raFrom = RecordAccounts.createExists(db, rs.getInt(2));
-            RecordAccounts raTo = RecordAccounts.createExists(db, rs.getInt(3));
-            RecordMoves recordMoves = new RecordMoves(db, id, rs.getTimestamp(1), raFrom, raTo, rs.getDouble(4), rs.getString(5));
-            rs.close();
-            return recordMoves;
-        } else {
-            throw new DBException("Moves " + id + " not exist!");
+        try (PreparedStatement pst = db.dbPostgres.getConnection().prepareStatement(
+                String.format("SELECT time, accountFrom, accountTo, sum, describe FROM %s WHERE id =%d;", tableName, id));
+             ResultSet rs = pst.executeQuery()
+        ) {
+            if (rs.next()) {
+                RecordAccounts raFrom = RecordAccounts.createExists(db, rs.getInt(2));
+                RecordAccounts raTo = RecordAccounts.createExists(db, rs.getInt(3));
+                RecordMoves recordMoves = new RecordMoves(db, id, rs.getTimestamp(1), raFrom, raTo, rs.getDouble(4), rs.getString(5));
+                rs.close();
+                return recordMoves;
+            } else {
+                rs.close();
+                throw new DBException("Moves " + id + " not exist!");
+            }
         }
     }
 

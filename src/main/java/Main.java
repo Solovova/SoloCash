@@ -1,3 +1,5 @@
+import db.DBMain;
+import db.RecordMoves;
 import wss.WSS;
 
 import java.io.BufferedReader;

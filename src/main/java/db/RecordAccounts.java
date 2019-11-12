@@ -18,31 +18,36 @@ public class RecordAccounts extends Record {
     }
 
     public static RecordAccounts createExists(DBMain db, int id) throws DBException, SQLException {
-        ResultSet rs = db.dbPostgres.getRowByIDFromTable(tableName, id, "name, timeModify");
-        if (rs.next()) {
-            RecordAccounts recordAccounts = new RecordAccounts(db, id, rs.getString(1), rs.getTimestamp(2));
-            rs.close();
-            return recordAccounts;
-        } else {
-            throw new DBException("Account " + id + " not exist!");
+        try (PreparedStatement pst = db.dbPostgres.getConnection().prepareStatement(
+                String.format("SELECT %s FROM %s WHERE id =%d;", "name, timeModify", tableName, id));
+             ResultSet rs = pst.executeQuery()
+        ) {
+            if (rs.next()) {
+                RecordAccounts recordAccounts = new RecordAccounts(db, id, rs.getString(1), rs.getTimestamp(2));
+                rs.close();
+                return recordAccounts;
+            } else {
+                rs.close();
+                throw new DBException("Account " + id + " not exist!");
+            }
         }
     }
 
-    public static RecordAccounts createNew(DBMain db, String name, Timestamp timestamp) {
+    public static RecordAccounts createNew(DBMain db, String name, Timestamp timestamp) { //++
         return new RecordAccounts(db, -1, name, timestamp);
     }
 
     @Override
     protected void insert() throws DBException, SQLException { //++
         super.insert();
-        try(PreparedStatement pst = getConnection().prepareStatement(
+        try (PreparedStatement pst = getConnection().prepareStatement(
                 String.format("INSERT INTO accounts(name, timemodify) VALUES(\'%s\', \'%s\') RETURNING id;", name, timeModify))) {
             ResultSet i = pst.executeQuery();
             i.next();
             this.setId(i.getInt(1));
 
-            try(PreparedStatement pstCreate = getConnection().prepareStatement(
-                    String.format(getDb().SQL_CREATE_EMPTY_ACCOUNT_TABLE, getTableAccountName()))){
+            try (PreparedStatement pstCreate = getConnection().prepareStatement(
+                    String.format(getDb().SQL_CREATE_EMPTY_ACCOUNT_TABLE, getTableAccountName()))) {
                 pstCreate.executeUpdate();
             }
         }
@@ -78,7 +83,7 @@ public class RecordAccounts extends Record {
     }
 
     public void recalculate(Timestamp ts) throws DBException, SQLException {
-        if(!getDb().getAutoRecalculateAccount()) {
+        if (!getDb().getAutoRecalculateAccount()) {
             return;
         }
 
@@ -105,7 +110,7 @@ public class RecordAccounts extends Record {
             }
             getDb().dbPostgres.executeUpdate(packetSQLQuery.toString());
 
-            this.modify( null, new Timestamp(System.currentTimeMillis()));
+            this.modify(null, new Timestamp(System.currentTimeMillis()));
         } finally {
             rs.close();
             pst.close();
