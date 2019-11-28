@@ -41,10 +41,11 @@ public class RecordAccounts extends Record {
     protected void insert() throws DBException, SQLException { //++
         super.insert();
         try (PreparedStatement pst = getConnection().prepareStatement(
-                String.format("INSERT INTO accounts(name, timemodify) VALUES(\'%s\', \'%s\') RETURNING id;", name, timeModify))) {
-            ResultSet i = pst.executeQuery();
-            i.next();
-            this.setId(i.getInt(1));
+                String.format("INSERT INTO accounts(name, timemodify) VALUES(\'%s\', \'%s\') RETURNING id;", name, timeModify));
+             ResultSet rs = pst.executeQuery();) {
+
+            rs.next();
+            this.setId(rs.getInt(1));
 
             try (PreparedStatement pstCreate = getConnection().prepareStatement(
                     String.format(getDb().SQL_CREATE_EMPTY_ACCOUNT_TABLE, getTableAccountName()))) {
@@ -79,7 +80,7 @@ public class RecordAccounts extends Record {
     }
 
     private String getTableAccountName() {
-        return RecordAccount.tableName + getId();
+        return RecordAccount.TABLE_NAME_PREFIX + getId();
     }
 
     public void recalculate(Timestamp ts) throws DBException, SQLException {

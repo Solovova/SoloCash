@@ -10,7 +10,7 @@ import java.sql.ResultSet;
 import java.util.ArrayList;
 
 public class RequestAccounts extends RequestParent {
-    static String IDENTIFIER = "RequestAccounts";
+    static final String IDENTIFIER = "RequestAccounts";
 
     RequestAccounts(DBMain db) {
         super(db);

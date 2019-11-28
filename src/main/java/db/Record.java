@@ -3,7 +3,6 @@ package db;
 import db.dataclas.TransactionType;
 
 import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.HashMap;
 
@@ -58,7 +57,7 @@ public class Record {
             getConnection().setAutoCommit(false);
 
             switch (nameTransaction) {
-                case insert:
+                case INSERT:
                     this.insert();
             }
             getConnection().commit();

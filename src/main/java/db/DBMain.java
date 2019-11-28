@@ -45,7 +45,7 @@ public class DBMain {
     private void dropAllTable() throws SQLException {
         ResultSet rs = dbPostgres.executeQuery(String.format("SELECT TABLE_NAME FROM cashflow.INFORMATION_SCHEMA.TABLES;"));
         while (rs.next()) {
-            if (rs.getString(1).startsWith(RecordAccount.tableName)) {
+            if (rs.getString(1).startsWith(RecordAccount.TABLE_NAME_PREFIX)) {
                 dbPostgres.executeUpdate(String.format("DROP TABLE IF EXISTS %s;", rs.getString(1)));
             }
         }

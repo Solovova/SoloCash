@@ -15,7 +15,7 @@ public class TestDBPrepareBig {
         for (int i = 0; i < numAccounts; i++) {
             try {
                 RecordAccounts.createNew(db, "account" + i, new Timestamp(0))
-                        .transaction(TransactionType.insert, null);
+                        .transaction(TransactionType.INSERT, null);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -36,7 +36,7 @@ public class TestDBPrepareBig {
                         RecordAccounts.createExists(db, accFrom),
                         RecordAccounts.createExists(db, accTo),
                         sum, "test" + i)
-                        .transaction(TransactionType.insert, null);
+                        .transaction(TransactionType.INSERT, null);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -52,7 +52,7 @@ public class TestDBPrepareBig {
                         RecordAccounts.createExists(db, accFrom),
                         RecordAccounts.createExists(db, accTo),
                         sum, "test" + i)
-                        .transaction(TransactionType.insert, null);
+                        .transaction(TransactionType.INSERT, null);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -67,7 +67,7 @@ public class TestDBPrepareBig {
                 RecordAccounts.createExists(dbMain, 2),
                 RecordAccounts.createExists(dbMain, 2),
                 300000.0, "test")
-                .transaction(TransactionType.insert, null);
+                .transaction(TransactionType.INSERT, null);
     }
 }
 

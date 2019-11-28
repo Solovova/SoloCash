@@ -1,6 +1,7 @@
 package db;
 
 import java.sql.*;
+import java.util.logging.Logger;
 
 public class DBPostgres {
     static private Connection connection = null;
@@ -24,10 +25,11 @@ public class DBPostgres {
     }
 
     private void connect() {
+        Logger log = Logger.getGlobal();
         try {
             Class.forName("org.postgresql.Driver");
         } catch (ClassNotFoundException e) {
-            System.out.println("PostgreSQL JDBC Driver is not found. Include it in your library path ");
+            log.info("PostgreSQL JDBC Driver is not found. Include it in your library path ");
             e.printStackTrace();
             return;
         }

@@ -7,36 +7,33 @@ import java.sql.Timestamp;
 import java.text.DecimalFormat;
 
 public class RecordAccount extends Record {
-    final static public String tableName = "account_";
+    static final String TABLE_NAME_PREFIX = "account_";
     private RecordAccounts recordAccounts;
     private RecordMoves recordMoves;
     public Timestamp time;
     public double sum;
 
-    RecordAccount(DBMain db, int id, RecordMoves recordMoves, RecordAccounts recordAccounts, double sum) {
-        super(db, id, tableName + recordAccounts.getId());
+    private RecordAccount(DBMain db, int id, RecordMoves recordMoves, RecordAccounts recordAccounts, double sum) {
+        super(db, id, TABLE_NAME_PREFIX + recordAccounts.getId());
         this.recordAccounts = recordAccounts;
         this.recordMoves = recordMoves;
         this.sum = sum;
     }
 
-    public static RecordAccount createNew(DBMain db, RecordMoves recordMoves, RecordAccounts recordAccounts, double sum) {
+    static RecordAccount createNew(DBMain db, RecordMoves recordMoves, RecordAccounts recordAccounts, double sum) {
         return new RecordAccount(db, -1, recordMoves, recordAccounts, sum);
     }
 
-    public static RecordAccount createExists(DBMain db, RecordMoves recordMoves, RecordAccounts recordAccounts, double sum) throws SQLException, DBException {
+    static RecordAccount createExists(DBMain db, RecordMoves recordMoves, RecordAccounts recordAccounts, double sum) throws SQLException, DBException {
 
         String strSum = new DecimalFormat("#.00#").format(sum).replace(',', '.');
         try (PreparedStatement pst = db.dbPostgres.getConnection().prepareStatement(
-                String.format("SELECT id, sum FROM %s WHERE moves = %d AND sum = %s;", tableName + recordAccounts.getId(), recordMoves.getId(), strSum));
+                String.format("SELECT id, sum FROM %s WHERE moves = %d AND sum = %s;", TABLE_NAME_PREFIX + recordAccounts.getId(), recordMoves.getId(), strSum));
              ResultSet rs = pst.executeQuery()
         ) {
             if (rs.next()) {
-                RecordAccount recordAccount = new RecordAccount(db, rs.getInt(1), recordMoves, recordAccounts, rs.getDouble(2));
-                rs.close();
-                return recordAccount;
+                return new RecordAccount(db, rs.getInt(1), recordMoves, recordAccounts, rs.getDouble(2));
             } else {
-                rs.close();
                 throw new DBException("Record account for moves" + recordMoves.getId() + " not exist!");
             }
         }
@@ -48,11 +45,11 @@ public class RecordAccount extends Record {
         String strSum = new DecimalFormat("#.00#").format(sum).replace(',', '.');
         try (PreparedStatement pst = getConnection().prepareStatement(
                 String.format("INSERT INTO %s (moves, time , sum) VALUES(%d, \'%s\' ,%s) RETURNING id;",
-                        getTableAccountName(), recordMoves.getId(), recordMoves.time, strSum)
-        )) {
-            ResultSet i = pst.executeQuery();
-            i.next();
-            this.setId(i.getInt(1));
+                        getTableAccountName(), recordMoves.getId(), recordMoves.time, strSum));
+             ResultSet rs = pst.executeQuery()
+        ) {
+            rs.next();
+            this.setId(rs.getInt(1));
         }
 
         //ToDo
@@ -72,6 +69,6 @@ public class RecordAccount extends Record {
     }
 
     private String getTableAccountName() {
-        return tableName + recordAccounts.getId();
+        return TABLE_NAME_PREFIX + recordAccounts.getId();
     }
 }
