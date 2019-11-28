@@ -7,14 +7,13 @@ import java.sql.Timestamp;
 import java.text.DecimalFormat;
 
 public class RecordAccount extends Record {
-    static final String TABLE_NAME_PREFIX = "account_";
     private RecordAccounts recordAccounts;
     private RecordMoves recordMoves;
     public Timestamp time;
     public double sum;
 
     private RecordAccount(DBMain db, int id, RecordMoves recordMoves, RecordAccounts recordAccounts, double sum) {
-        super(db, id, TABLE_NAME_PREFIX + recordAccounts.getId());
+        super(db, id);
         this.recordAccounts = recordAccounts;
         this.recordMoves = recordMoves;
         this.sum = sum;
@@ -28,7 +27,7 @@ public class RecordAccount extends Record {
 
         String strSum = new DecimalFormat("#.00#").format(sum).replace(',', '.');
         try (PreparedStatement pst = db.dbPostgres.getConnection().prepareStatement(
-                String.format("SELECT id, sum FROM %s WHERE moves = %d AND sum = %s;", TABLE_NAME_PREFIX + recordAccounts.getId(), recordMoves.getId(), strSum));
+                String.format("SELECT id, sum FROM account WHERE moves = %d AND sum = %s;", recordMoves.getId(), strSum));
              ResultSet rs = pst.executeQuery()
         ) {
             if (rs.next()) {
@@ -44,8 +43,8 @@ public class RecordAccount extends Record {
         super.insert();
         String strSum = new DecimalFormat("#.00#").format(sum).replace(',', '.');
         try (PreparedStatement pst = getConnection().prepareStatement(
-                String.format("INSERT INTO %s (moves, time , sum) VALUES(%d, \'%s\' ,%s) RETURNING id;",
-                        getTableAccountName(), recordMoves.getId(), recordMoves.time, strSum));
+                String.format("INSERT INTO account (accounts, moves, time , sum) VALUES(%d, %d, \'%s\' ,%s) RETURNING id;",
+                        recordAccounts.getId(), recordMoves.getId(), recordMoves.time, strSum));
              ResultSet rs = pst.executeQuery()
         ) {
             rs.next();
@@ -62,13 +61,12 @@ public class RecordAccount extends Record {
     @Override
     public void delete() throws DBException, SQLException {
         super.delete();
+        String sqlQuery = String.format("DELETE FROM account WHERE id = %d;", getId());
+        getDb().dbPostgres.executeUpdate(sqlQuery);
+
         if (recordAccounts.timeModify.after(recordMoves.time)) {
             recordAccounts.modify(null, recordMoves.time);
         }
         recordAccounts.recalculate(null);
-    }
-
-    private String getTableAccountName() {
-        return TABLE_NAME_PREFIX + recordAccounts.getId();
     }
 }

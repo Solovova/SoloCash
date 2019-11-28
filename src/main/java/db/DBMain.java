@@ -21,10 +21,11 @@ public class DBMain {
             "accountTo INT references accounts(id)," +
             "sum decimal ," +
             "describe VARCHAR(25)" +
-            ");";
+            ");" +
 
-    final static String SQL_CREATE_EMPTY_ACCOUNT_TABLE = "CREATE TABLE IF NOT EXISTS %s (" +
+            "CREATE TABLE IF NOT EXISTS account (" +
             "id serial PRIMARY KEY," +
+            "accounts INT references accounts(id)," +
             "moves INT references moves(id)," +
             "time timestamp," +
             "sum decimal ," +
@@ -43,13 +44,7 @@ public class DBMain {
     }
 
     private void dropAllTable() throws SQLException {
-        ResultSet rs = dbPostgres.executeQuery(String.format("SELECT TABLE_NAME FROM cashflow.INFORMATION_SCHEMA.TABLES;"));
-        while (rs.next()) {
-            if (rs.getString(1).startsWith(RecordAccount.TABLE_NAME_PREFIX)) {
-                dbPostgres.executeUpdate(String.format("DROP TABLE IF EXISTS %s;", rs.getString(1)));
-            }
-        }
-        rs.close();
+        dbPostgres.executeUpdate("DROP TABLE IF EXISTS account;");
         dbPostgres.executeUpdate("DROP TABLE IF EXISTS moves;");
         dbPostgres.executeUpdate("DROP TABLE IF EXISTS accounts;");
     }
