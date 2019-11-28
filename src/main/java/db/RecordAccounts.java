@@ -4,7 +4,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.text.DecimalFormat;
+
+import static sf.StaticFunctions.doubleToString;
 
 public class RecordAccounts extends Record {
     final static private String tableName = "accounts";
@@ -19,7 +20,7 @@ public class RecordAccounts extends Record {
 
     public static RecordAccounts createExists(DBMain db, int id) throws DBException, SQLException {
         try (PreparedStatement pst = db.dbPostgres.getConnection().prepareStatement(
-                String.format("SELECT %s FROM accounts WHERE id =%d;", "name, timeModify", id));
+                String.format("SELECT name, timeModify FROM accounts WHERE id =%d;", id));
              ResultSet rs = pst.executeQuery()
         ) {
             if (rs.next()) {
@@ -58,7 +59,7 @@ public class RecordAccounts extends Record {
         }
 
         if (timeModifyNew != null && !timeModify.equals(timeModifyNew)) {
-            sb.append(String.format("UPDATE accounts SET timeModify = \'%s\' WHERE id = %d;" , timeModifyNew, getId()));
+            sb.append(String.format("UPDATE accounts SET timeModify = \'%s\' WHERE id = %d;", timeModifyNew, getId()));
             this.timeModify = timeModifyNew;
         }
 
@@ -84,11 +85,12 @@ public class RecordAccounts extends Record {
         if (ts == null) ts = this.timeModify;
 
         String sqlQuery = String.format("WITH cte AS (SELECT id, sum, balance, LAG(balance,1) OVER(ORDER BY time, id) prev_balance, time FROM account WHERE account.accounts = %d ORDER BY time, id) SELECT id, sum, balance, prev_balance FROM cte WHERE time >= \'%s\';", this.getId(), ts);
-        PreparedStatement pst = getConnection().prepareStatement(sqlQuery);
-        ResultSet rs = pst.executeQuery();
+
         double balance = 0;
 
-        try {
+        try (PreparedStatement pst = getConnection().prepareStatement(sqlQuery);
+             ResultSet rs = pst.executeQuery()
+        ) {
             StringBuilder packetSQLQuery = new StringBuilder();
             while (rs.next()) {
                 if (rs.isFirst()) {
@@ -97,21 +99,18 @@ public class RecordAccounts extends Record {
                 balance += rs.getDouble(2);
                 if ((int) (balance * 100) == (int) (rs.getDouble(3) * 100)) continue;
                 int recordAccountID = rs.getInt(1);
-                String strBalance = new DecimalFormat("#.00#").format(balance).replace(',', '.');
+                String strBalance = doubleToString(balance);
                 String sqlRequest = String.format("UPDATE account SET balance = %s WHERE id = %d;", strBalance, recordAccountID);
                 packetSQLQuery.append(sqlRequest);
             }
             getDb().dbPostgres.executeUpdate(packetSQLQuery.toString());
 
             this.modify(null, new Timestamp(System.currentTimeMillis()));
-        } finally {
-            rs.close();
-            pst.close();
         }
     }
 
     public double getBalance() throws SQLException {
-        String sqlRequest = String.format("SELECT balance FROM account WHERE account.accounts = %d ORDER BY time DESC, id DESC;",this.getId());
+        String sqlRequest = String.format("SELECT balance FROM account WHERE account.accounts = %d ORDER BY time DESC, id DESC;", this.getId());
         ResultSet rs = getDb().dbPostgres.executeQuery(sqlRequest);
         double sumBalance = -999999999;
         if (rs.next()) {

@@ -3,6 +3,7 @@ package db;
 import db.requests.RequestContainer;
 
 import java.sql.*;
+import java.util.logging.Logger;
 
 public class DBMain {
     private RequestContainer requestContainer;
@@ -55,12 +56,12 @@ public class DBMain {
     }
 
     public double getSummaryBalance() throws SQLException, DBException {
-        ResultSet rs = dbPostgres.executeQuery(String.format("SELECT id FROM accounts;"));
+        ResultSet rs = dbPostgres.executeQuery("SELECT id FROM accounts;");
         double summaryBalance = 0.0;
         while (rs.next()) {
             double balance = RecordAccounts.createExists(this, rs.getInt(1)).getBalance();
             summaryBalance += balance;
-            System.out.println("Account " + rs.getInt(1) + " : " + balance);
+            Logger.getGlobal().info("Account " + rs.getInt(1) + " : " + balance);
         }
         rs.close();
         System.out.println("Summary balance  : " + summaryBalance);

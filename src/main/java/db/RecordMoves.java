@@ -4,9 +4,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.text.DecimalFormat;
-import java.util.HashMap;
-import java.util.Map;
+
+import static sf.StaticFunctions.doubleToString;
 
 public class RecordMoves extends Record {
     public Timestamp time;
@@ -25,7 +24,7 @@ public class RecordMoves extends Record {
     }
 
     public static RecordMoves createNew(DBMain db, Timestamp time, RecordAccounts accountFrom, RecordAccounts accountTo, double sum, String describe) {
-        return new RecordMoves(db, -1 , time, accountFrom, accountTo, sum, describe);
+        return new RecordMoves(db, -1, time, accountFrom, accountTo, sum, describe);
     }
 
     public static RecordMoves createExists(DBMain db, int id) throws DBException, SQLException {
@@ -36,11 +35,8 @@ public class RecordMoves extends Record {
             if (rs.next()) {
                 RecordAccounts raFrom = RecordAccounts.createExists(db, rs.getInt(2));
                 RecordAccounts raTo = RecordAccounts.createExists(db, rs.getInt(3));
-                RecordMoves recordMoves = new RecordMoves(db, id, rs.getTimestamp(1), raFrom, raTo, rs.getDouble(4), rs.getString(5));
-                rs.close();
-                return recordMoves;
+                return new RecordMoves(db, id, rs.getTimestamp(1), raFrom, raTo, rs.getDouble(4), rs.getString(5));
             } else {
-                rs.close();
                 throw new DBException("Moves " + id + " not exist!");
             }
         }
@@ -49,14 +45,16 @@ public class RecordMoves extends Record {
     @Override
     protected void insert() throws DBException, SQLException { //++
         super.insert();
-        String strSum = new DecimalFormat("#.00#").format(sum).replace(',', '.');
-        try(PreparedStatement pst = getConnection().prepareStatement(
-                String.format("INSERT INTO moves(time, accountFrom, accountTo, sum, describe) VALUES(\'%s\', %d, %d, %s, \'%s\') RETURNING id;",
-                        time, accountFrom.getId(), accountTo.getId(), strSum, describe)
-        )) {
-            ResultSet i = pst.executeQuery();
-            i.next();
-            this.setId(i.getInt(1));
+
+        String strSum = doubleToString(sum);
+        String strSql = String.format("INSERT INTO moves(time, accountFrom, accountTo, sum, describe) VALUES(\'%s\', %d, %d, %s, \'%s\') RETURNING id;",
+                time, accountFrom.getId(), accountTo.getId(), strSum, describe);
+        try (
+                PreparedStatement pst = getConnection().prepareStatement(strSql);
+                ResultSet rs = pst.executeQuery();
+        ) {
+            rs.next();
+            this.setId(rs.getInt(1));
         }
 
         RecordAccount.createNew(getDb(), this, accountFrom, -this.sum).insert();
@@ -99,7 +97,7 @@ public class RecordMoves extends Record {
         }
 
         if (newSum != null && newSum != this.sum) {
-            String strSum = new DecimalFormat("#.00#").format(newSum).replace(',', '.');
+            String strSum = doubleToString(newSum);
             sb.append(String.format("UPDATE moves SET sum = %s WHERE id = %d;", strSum, getId()));
             this.sum = newSum;
             needRefresh = true;
@@ -111,7 +109,6 @@ public class RecordMoves extends Record {
         }
 
         String sqlQuery = sb.toString();
-        //System.out.println(sqlQuery);
         if (!sqlQuery.isEmpty()) {
             getDb().dbPostgres.executeUpdate(sqlQuery);
         }

@@ -4,7 +4,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.text.DecimalFormat;
+
+import static sf.StaticFunctions.doubleToString;
 
 public class RecordAccount extends Record {
     private RecordAccounts recordAccounts;
@@ -25,7 +26,7 @@ public class RecordAccount extends Record {
 
     static RecordAccount createExists(DBMain db, RecordMoves recordMoves, RecordAccounts recordAccounts, double sum) throws SQLException, DBException {
 
-        String strSum = new DecimalFormat("#.00#").format(sum).replace(',', '.');
+        String strSum = doubleToString(sum);
         try (PreparedStatement pst = db.dbPostgres.getConnection().prepareStatement(
                 String.format("SELECT id, sum FROM account WHERE moves = %d AND sum = %s;", recordMoves.getId(), strSum));
              ResultSet rs = pst.executeQuery()
@@ -41,7 +42,7 @@ public class RecordAccount extends Record {
     @Override
     protected void insert() throws DBException, SQLException {  //++
         super.insert();
-        String strSum = new DecimalFormat("#.00#").format(sum).replace(',', '.');
+        String strSum = doubleToString(sum);
         try (PreparedStatement pst = getConnection().prepareStatement(
                 String.format("INSERT INTO account (accounts, moves, time , sum) VALUES(%d, %d, \'%s\' ,%s) RETURNING id;",
                         recordAccounts.getId(), recordMoves.getId(), recordMoves.time, strSum));
@@ -51,7 +52,7 @@ public class RecordAccount extends Record {
             this.setId(rs.getInt(1));
         }
 
-        //ToDo
+        //ToDo test
         if (recordAccounts.timeModify.after(recordMoves.time)) {
             recordAccounts.modify(null, recordMoves.time);
         }
