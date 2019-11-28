@@ -9,7 +9,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class RecordMoves extends Record {
-    final static private String tableName = "moves";
     public Timestamp time;
     public RecordAccounts accountFrom;
     public RecordAccounts accountTo;
@@ -17,7 +16,7 @@ public class RecordMoves extends Record {
     public String describe;
 
     RecordMoves(DBMain db, int id, Timestamp time, RecordAccounts accountFrom, RecordAccounts accountTo, double sum, String describe) {
-        super(db, id, tableName);
+        super(db, id);
         this.time = time;
         this.accountFrom = accountFrom;
         this.accountTo = accountTo;
@@ -31,7 +30,7 @@ public class RecordMoves extends Record {
 
     public static RecordMoves createExists(DBMain db, int id) throws DBException, SQLException {
         try (PreparedStatement pst = db.dbPostgres.getConnection().prepareStatement(
-                String.format("SELECT time, accountFrom, accountTo, sum, describe FROM %s WHERE id =%d;", tableName, id));
+                String.format("SELECT time, accountFrom, accountTo, sum, describe FROM moves WHERE id =%d;", id));
              ResultSet rs = pst.executeQuery()
         ) {
             if (rs.next()) {
@@ -66,9 +65,11 @@ public class RecordMoves extends Record {
 
     @Override
     public void delete() throws DBException, SQLException {
+        super.delete();
         RecordAccount.createExists(getDb(), this, accountFrom, -this.sum).delete();
         RecordAccount.createExists(getDb(), this, accountTo, this.sum).delete();
-        super.delete();
+        String sqlQuery = String.format("DELETE FROM moves WHERE id = %d;", getId());
+        getDb().dbPostgres.executeUpdate(sqlQuery);
     }
 
     public void modify(Timestamp newTime, RecordAccounts newRaFrom, RecordAccounts newRaTo, Double newSum, String newDescribe) throws SQLException, DBException {
@@ -80,32 +81,32 @@ public class RecordMoves extends Record {
         boolean needRefresh = false;
 
         if (newTime != null && !newTime.equals(this.time)) {
-            sb.append(String.format("UPDATE %s SET time = \'%s\' WHERE id = %d;", getTable(), newTime, getId()));
+            sb.append(String.format("UPDATE moves SET time = \'%s\' WHERE id = %d;", newTime, getId()));
             this.time = newTime;
             needRefresh = true;
         }
 
         if (newRaFrom != null && newRaFrom.getId() != this.accountFrom.getId()) {
-            sb.append(String.format("UPDATE %s SET accountfrom = %d WHERE id = %d;", getTable(), newRaFrom.getId(), getId()));
+            sb.append(String.format("UPDATE moves SET accountfrom = %d WHERE id = %d;", newRaFrom.getId(), getId()));
             this.accountFrom = newRaFrom;
             needRefresh = true;
         }
 
         if (newRaTo != null && newRaTo.getId() != this.accountTo.getId()) {
-            sb.append(String.format("UPDATE %s SET accountto = %d WHERE id = %d;", getTable(), newRaTo.getId(), getId()));
+            sb.append(String.format("UPDATE moves SET accountto = %d WHERE id = %d;", newRaTo.getId(), getId()));
             this.accountTo = newRaTo;
             needRefresh = true;
         }
 
         if (newSum != null && newSum != this.sum) {
             String strSum = new DecimalFormat("#.00#").format(newSum).replace(',', '.');
-            sb.append(String.format("UPDATE %s SET sum = %s WHERE id = %d;", getTable(), strSum, getId()));
+            sb.append(String.format("UPDATE moves SET sum = %s WHERE id = %d;", strSum, getId()));
             this.sum = newSum;
             needRefresh = true;
         }
 
         if (newDescribe != null && !newDescribe.equals(this.describe)) {
-            sb.append(String.format("UPDATE %s SET describe = \'%' WHERE id = %d;", getTable(), newDescribe, getId()));
+            sb.append(String.format("UPDATE moves SET describe = \'%' WHERE id = %d;", newDescribe, getId()));
             this.describe = newDescribe;
         }
 
