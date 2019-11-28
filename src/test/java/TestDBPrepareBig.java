@@ -10,7 +10,7 @@ import java.sql.Timestamp;
 public class TestDBPrepareBig {
     public static void fillTestData(DBMain db) {
         final int numAccounts = 10;
-        final int numMoves = 2000;
+        final int numMoves = 10000;
 
         for (int i = 0; i < numAccounts; i++) {
             try {
@@ -21,7 +21,7 @@ public class TestDBPrepareBig {
             }
         }
 
-        //db.setAutoRecalculateAccount(false);
+        db.setAutoRecalculateAccount(false);
         long timeNow = System.currentTimeMillis();
 
 
@@ -58,8 +58,7 @@ public class TestDBPrepareBig {
             }
         }
 
-        //db.setAutoRecalculateAccount(true);
-
+        db.setAutoRecalculateAccount(true);
     }
 
     public static void recalculateTests(DBMain dbMain) throws DBException, SQLException {
